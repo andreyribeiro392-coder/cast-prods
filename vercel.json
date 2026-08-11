@@ -3,6 +3,23 @@
   "framework": null,
   "buildCommand": null,
   "outputDirectory": "public",
+  "redirects": [
+    {
+      "source": "/signin-with-chatgpt",
+      "destination": "https://site-andrei.xtzadas.chatgpt.site/signin-with-chatgpt",
+      "permanent": false
+    },
+    {
+      "source": "/signout-with-chatgpt",
+      "destination": "https://site-andrei.xtzadas.chatgpt.site/signout-with-chatgpt",
+      "permanent": false
+    },
+    {
+      "source": "/callback",
+      "destination": "https://site-andrei.xtzadas.chatgpt.site/callback",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",
