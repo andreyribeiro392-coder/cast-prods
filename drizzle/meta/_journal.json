@@ -1,0 +1,62 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1786465118214,
+      "tag": "0000_early_random",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1786468661370,
+      "tag": "0001_seed_shopee_products",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1786470924729,
+      "tag": "0002_expand_catalog_directories",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1786472208245,
+      "tag": "0003_general_marketplace",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1786474141943,
+      "tag": "0004_bulk_catalog_dedupe",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1786477815312,
+      "tag": "0005_stale_madame_masque",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1786480373358,
+      "tag": "0006_import_new_products",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1786488056823,
+      "tag": "0007_tranquil_ultimates",
+      "breakpoints": true
+    }
+  ]
+}
