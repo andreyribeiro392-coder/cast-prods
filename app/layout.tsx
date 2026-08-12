@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "cast.prods",
   description: "cast.prods — achados de moda, casa, tecnologia, beleza, academia, ferramentas, esporte e muito mais.",
-  other: { "codex-preview": "development" },
+  other: { "codex-preview": "development", "cast-theme": "joker-v2" },
   icons: {
     icon: [{ url: "/cast-prods-logo.svg", type: "image/svg+xml" }],
     shortcut: "/cast-prods-logo.svg",
