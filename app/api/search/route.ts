@@ -1,6 +1,7 @@
 import { desc } from "drizzle-orm";
 import { getDb } from "@/db";
 import { products } from "@/db/schema";
+import seededProducts from "@/data/products.json";
 
 export async function GET(request: Request) {
   const query = new URL(request.url).searchParams.get("q")?.trim().slice(0, 80) ?? "";
@@ -38,7 +39,14 @@ export async function GET(request: Request) {
 
     return Response.json({ products: matches });
   } catch {
-    return Response.json({ products: [], error: "A pesquisa está temporariamente indisponível." }, { status: 503 });
+    const normalizedQuery = normalizeSearch(query);
+    const matches = seededProducts
+      .filter((product) => normalizeSearch(`${product.title} ${product.description}`).includes(normalizedQuery))
+      .slice(0, 12)
+      .map(({ id, title, department, category, productUrl, imageKey, imageUrl }) => ({
+        id, title, department, category, productUrl, imageKey, imageUrl,
+      }));
+    return Response.json({ products: matches });
   }
 }
 
