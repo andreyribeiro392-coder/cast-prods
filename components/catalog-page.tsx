@@ -1,11 +1,8 @@
 import Link from "next/link";
-import { chatGPTSignInPath, getChatGPTUser } from "@/app/chatgpt-auth";
 import { AccountNav } from "@/components/account-nav";
 import { BackButton } from "@/components/back-button";
 import { CatalogView } from "@/components/catalog-view";
-import { isAdminEmail } from "@/lib/admin";
 import type { Audience, CatalogProduct } from "@/lib/catalog";
-import { emptySavedState, getSavedState } from "@/lib/saved-products";
 
 export async function CatalogPage({ audience, products, tiktokUrl }: { audience: Audience; products: CatalogProduct[]; tiktokUrl: string }) {
   const page = {
@@ -14,9 +11,6 @@ export async function CatalogPage({ audience, products, tiktokUrl }: { audience:
     unissex: { eyebrow: "MODA UNISSEX", title: "Estilo sem rótulos.", description: "Peças versáteis feitas para todos os estilos." },
   }[audience];
   const fashionProducts = products.filter((product) => product.department === "moda");
-  const returnTo = `/${audience}`;
-  const user = await getChatGPTUser();
-  const savedState = user ? await getSavedState(user.email) : emptySavedState;
   return (
     <main className={`catalog-page catalog-page--${audience}`}>
       <BackButton />
@@ -48,18 +42,12 @@ export async function CatalogPage({ audience, products, tiktokUrl }: { audience:
           </div>
           <span>{fashionProducts.length} {fashionProducts.length === 1 ? "item" : "itens"}</span>
         </div>
-        <CatalogView
-          initialSavedState={savedState}
-          isSignedIn={Boolean(user)}
-          products={fashionProducts}
-          signInHref={chatGPTSignInPath(returnTo)}
-        />
+        <CatalogView products={fashionProducts} />
       </section>
 
       <footer>
         <Link className="brand brand--footer" href="/">CAST<span>.PRODS</span></Link>
         <p>Achados para todos os momentos.</p>
-        {isAdminEmail(user?.email) && <Link href="/admin">Área do administrador</Link>}
       </footer>
     </main>
   );
