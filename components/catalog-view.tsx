@@ -1,8 +1,22 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { AgeGroup, CatalogProduct, Category, Department } from "@/lib/catalog";
-import type { SavedAction, SavedState } from "@/lib/saved-products";
+import type { SavedAction } from "@/lib/saved-products";
+
+const storageKeys: Record<SavedAction, string> = {
+  liked: "cast-prods-liked",
+  cart: "cast-prods-cart",
+};
+
+function readSavedIds(action: SavedAction): number[] {
+  try {
+    const value = JSON.parse(window.localStorage.getItem(storageKeys[action]) ?? "[]");
+    return Array.isArray(value) ? value.filter((item) => Number.isInteger(item)) : [];
+  } catch {
+    return [];
+  }
+}
 
 const categoryLabels: Record<Category, string> = {
   sapatos: "Sapatos",
@@ -94,17 +108,13 @@ function firstCategoryFor(products: CatalogProduct[], ageGroup: AgeGroup): Categ
 export function CatalogView({
   products,
   emptyMessage = "Nenhum produto encontrado neste subdiretório.",
-  initialSavedState = { likedIds: [], cartIds: [] },
-  isSignedIn = false,
-  signInHref = "/signin-with-chatgpt?return_to=%2Fconta",
+  savedOnly,
   simple = false,
   showAgeGrouping = false,
 }: {
   products: CatalogProduct[];
   emptyMessage?: string;
-  initialSavedState?: SavedState;
-  isSignedIn?: boolean;
-  signInHref?: string;
+  savedOnly?: SavedAction;
   simple?: boolean;
   showAgeGrouping?: boolean;
 }) {
@@ -114,20 +124,31 @@ export function CatalogView({
     const initialAge = initialAgeFor(products);
     return firstCategoryFor(products, initialAge);
   });
-  const [likedIds, setLikedIds] = useState(() => new Set(initialSavedState.likedIds));
-  const [cartIds, setCartIds] = useState(() => new Set(initialSavedState.cartIds));
-  const [pending, setPending] = useState(() => new Set<string>());
+  const [likedIds, setLikedIds] = useState(() => new Set<number>());
+  const [cartIds, setCartIds] = useState(() => new Set<number>());
+  const [savedLoaded, setSavedLoaded] = useState(false);
   const [notice, setNotice] = useState("");
+
+  useEffect(() => {
+    setLikedIds(new Set(readSavedIds("liked")));
+    setCartIds(new Set(readSavedIds("cart")));
+    setSavedLoaded(true);
+  }, []);
   const visibleForAge = useMemo(
     () => simple || !showAgeGrouping ? products : products.filter((product) => product.ageGroup === ageGroup),
     [ageGroup, products, showAgeGrouping, simple],
   );
-  const filtered = useMemo(
+  const categoryFiltered = useMemo(
     () => simple || !category
       ? visibleForAge
       : visibleForAge.filter((product) => product.category === category),
     [category, simple, visibleForAge],
   );
+  const filtered = useMemo(() => {
+    if (!savedOnly) return categoryFiltered;
+    const savedIds = savedOnly === "liked" ? likedIds : cartIds;
+    return categoryFiltered.filter((product) => savedIds.has(product.id));
+  }, [cartIds, categoryFiltered, likedIds, savedOnly]);
   const availableCategories = useMemo(
     () => categoryOrder.filter((item) => visibleForAge.some((product) => product.category === item)),
     [visibleForAge],
@@ -144,48 +165,21 @@ export function CatalogView({
     setCategory(firstCategoryFor(products, nextAge));
   }
 
-  async function toggleSaved(productId: number, action: SavedAction) {
-    if (!isSignedIn) {
-      window.location.assign(signInHref);
-      return;
-    }
-
-    const key = `${action}-${productId}`;
-    if (pending.has(key)) return;
+  function toggleSaved(productId: number, action: SavedAction) {
     const currentSet = action === "liked" ? likedIds : cartIds;
     const setCurrent = action === "liked" ? setLikedIds : setCartIds;
     const active = !currentSet.has(productId);
-
-    setPending((items) => new Set(items).add(key));
-    setCurrent((items) => {
-      const next = new Set(items);
-      if (active) next.add(productId); else next.delete(productId);
-      return next;
-    });
-
+    const next = new Set(currentSet);
+    if (active) next.add(productId); else next.delete(productId);
+    setCurrent(next);
     try {
-      const response = await fetch("/api/saved", {
-        method: "PUT",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ productId, action, active }),
-      });
-      if (!response.ok) throw new Error("Não foi possível salvar agora.");
+      window.localStorage.setItem(storageKeys[action], JSON.stringify([...next]));
       setNotice(action === "liked"
         ? (active ? "Produto adicionado aos curtidos." : "Produto retirado dos curtidos.")
         : (active ? "Produto adicionado ao carrinho." : "Produto retirado do carrinho."));
     } catch {
-      setCurrent((items) => {
-        const next = new Set(items);
-        if (active) next.delete(productId); else next.add(productId);
-        return next;
-      });
-      setNotice("Não foi possível salvar. Tente novamente.");
-    } finally {
-      setPending((items) => {
-        const next = new Set(items);
-        next.delete(key);
-        return next;
-      });
+      setCurrent(currentSet);
+      setNotice("Não foi possível salvar neste navegador.");
     }
   }
 
@@ -251,7 +245,6 @@ export function CatalogView({
                   <button
                     aria-pressed={likedIds.has(product.id)}
                     className={likedIds.has(product.id) ? "save-button save-button--active" : "save-button"}
-                    disabled={pending.has(`liked-${product.id}`)}
                     onClick={() => toggleSaved(product.id, "liked")}
                     type="button"
                   >
@@ -261,7 +254,6 @@ export function CatalogView({
                   <button
                     aria-pressed={cartIds.has(product.id)}
                     className={cartIds.has(product.id) ? "save-button save-button--active" : "save-button"}
-                    disabled={pending.has(`cart-${product.id}`)}
                     onClick={() => toggleSaved(product.id, "cart")}
                     type="button"
                   >
@@ -281,7 +273,7 @@ export function CatalogView({
           );
         })}
       </div>
-      {filtered.length === 0 && <div className="catalog-empty">{emptyMessage}</div>}
+      {(!savedOnly || savedLoaded) && filtered.length === 0 && <div className="catalog-empty">{emptyMessage}</div>}
     </>
   );
 }
