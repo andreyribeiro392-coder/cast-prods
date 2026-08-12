@@ -1,5 +1,3 @@
-@import "tailwindcss";
-
 :root {
   --ink: #0b0b0c;
   --paper: #f5f1e9;
@@ -769,7 +767,6 @@ footer,
     color: #0b0b0c !important;
   }
 }
-
 
 /* CAST.PRODS — joker card identity */
 :root {
