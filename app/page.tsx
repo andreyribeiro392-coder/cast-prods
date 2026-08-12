@@ -1,7 +1,5 @@
 import Link from "next/link";
-import { getChatGPTUser } from "@/app/chatgpt-auth";
 import { AccountNav } from "@/components/account-nav";
-import { isAdminEmail } from "@/lib/admin";
 import { getSetting } from "@/lib/catalog";
 
 export const dynamic = "force-dynamic";
@@ -103,8 +101,7 @@ const directories = [
 ];
 
 export default async function Home() {
-  const [tiktokUrl, user] = await Promise.all([getSetting("tiktok_url"), getChatGPTUser()]);
-  const isAdmin = isAdminEmail(user?.email);
+  const tiktokUrl = await getSetting("tiktok_url");
   return (
     <main>
       <header className="site-header site-header--overlay">
@@ -124,6 +121,9 @@ export default async function Home() {
       <section className="hero">
         <div className="hero-orb hero-orb--one" />
         <div className="hero-orb hero-orb--two" />
+        <div className="joker-card joker-card--one" aria-hidden="true"><span>♠</span><b>A</b></div>
+        <div className="joker-card joker-card--two" aria-hidden="true"><span>♣</span><b>J</b></div>
+        <div className="joker-card joker-card--three" aria-hidden="true"><span>♦</span><b>K</b></div>
         <div className="hero-content reveal-up">
           <p className="eyebrow">ACHADOS PARA VOCÊ • 2026</p>
           <h1>
@@ -199,10 +199,10 @@ export default async function Home() {
           </div>
           <a
             className="tiktok-button"
-            href={tiktokUrl || (isAdmin ? "/admin" : "#social")}
+            href={tiktokUrl || "#social"}
             rel={tiktokUrl ? "noopener noreferrer" : undefined}
             target={tiktokUrl ? "_blank" : undefined}
-            aria-label={tiktokUrl ? "Abrir TikTok da CAST.PRODS" : (isAdmin ? "Adicionar TikTok no painel do administrador" : "TikTok da CAST.PRODS")}
+            aria-label={tiktokUrl ? "Abrir TikTok da CAST.PRODS" : "TikTok da CAST.PRODS"}
           >
             <span className="tiktok-note">♪</span>
             <span><small>ACOMPANHE NO</small>TikTok</span>
@@ -214,7 +214,6 @@ export default async function Home() {
       <footer>
         <Link className="brand brand--footer" href="/">CAST<span>.PRODS</span></Link>
         <p>Achados para todos os momentos.</p>
-        {isAdmin && <Link href="/admin">Área do administrador</Link>}
       </footer>
     </main>
   );
