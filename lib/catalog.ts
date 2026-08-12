@@ -1,6 +1,7 @@
 import { and, desc, eq, type SQL } from "drizzle-orm";
 import { getDb } from "@/db";
 import { products, settings } from "@/db/schema";
+import seededProducts from "@/data/products.json";
 
 export type Audience = "masculino" | "feminino" | "unissex";
 export type ProductAudience = Audience;
@@ -165,6 +166,8 @@ export const sampleProducts: CatalogProduct[] = [
   },
 ];
 
+const preservedProducts = seededProducts as CatalogProduct[];
+
 export async function listProducts(filters: { audience?: Audience; department?: Department; ageGroup?: AgeGroup } = {}): Promise<CatalogProduct[]> {
   try {
     const db = await getDb();
@@ -181,7 +184,7 @@ export async function listProducts(filters: { audience?: Audience; department?: 
   } catch {
     // The designed sample collection keeps the first visit useful before the first upload.
   }
-  return sampleProducts.filter((item) =>
+  return preservedProducts.filter((item) =>
     (!filters.audience || item.audience === filters.audience) &&
     (!filters.department || item.department === filters.department) &&
     (!filters.ageGroup || item.ageGroup === filters.ageGroup),
