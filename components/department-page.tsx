@@ -1,11 +1,8 @@
 import Link from "next/link";
-import { chatGPTSignInPath, getChatGPTUser } from "@/app/chatgpt-auth";
 import { AccountNav } from "@/components/account-nav";
 import { BackButton } from "@/components/back-button";
 import { CatalogView } from "@/components/catalog-view";
-import { isAdminEmail } from "@/lib/admin";
 import type { CatalogProduct, Department } from "@/lib/catalog";
-import { emptySavedState, getSavedState } from "@/lib/saved-products";
 
 type DirectoryPageKey = Department | "infantil";
 
@@ -23,9 +20,6 @@ const content: Record<DirectoryPageKey, { eyebrow: string; title: string; descri
 
 export async function DepartmentPage({ directory, products, tiktokUrl }: { directory: DirectoryPageKey; products: CatalogProduct[]; tiktokUrl: string }) {
   const page = content[directory];
-  const returnTo = directory === "esporte_lazer" ? "/esporte" : `/${directory}`;
-  const user = await getChatGPTUser();
-  const savedState = user ? await getSavedState(user.email) : emptySavedState;
   return (
     <main className={`catalog-page catalog-page--${directory}`}>
       <BackButton />
@@ -47,14 +41,11 @@ export async function DepartmentPage({ directory, products, tiktokUrl }: { direc
         <div className="catalog-title-row"><div><p className="eyebrow eyebrow--dark">CATÁLOGO CAST.PRODS</p><h2>{page.heading}</h2></div><span>{products.length} {products.length === 1 ? "item" : "itens"}</span></div>
         <CatalogView
           emptyMessage={page.empty}
-          initialSavedState={savedState}
-          isSignedIn={Boolean(user)}
           products={products}
           showAgeGrouping={directory === "acessorios"}
-          signInHref={chatGPTSignInPath(returnTo)}
         />
       </section>
-      <footer><Link className="brand brand--footer" href="/">CAST<span>.PRODS</span></Link><p>Achados para todos os momentos.</p>{isAdminEmail(user?.email) && <Link href="/admin">Área do administrador</Link>}</footer>
+      <footer><Link className="brand brand--footer" href="/">CAST<span>.PRODS</span></Link><p>Achados para todos os momentos.</p></footer>
     </main>
   );
 }
