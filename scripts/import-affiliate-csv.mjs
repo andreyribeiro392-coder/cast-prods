@@ -140,6 +140,7 @@ let added = 0;
 let updated = 0;
 let imageFailures = 0;
 const newRows = [...rowsById.values()].filter((row) => !existingBySourceId.has(row["Item Id"]));
+const newlyAddedIds = new Set(newRows.map((row) => row["Item Id"]));
 
 let cursor = 0;
 async function worker() {
@@ -149,6 +150,8 @@ async function worker() {
     const imageUrl = await getImageUrl(row["Product Link"]);
     if (!imageUrl) imageFailures += 1;
     const classification = classify(row["Item Name"]);
+    const rating = Number(row.Rating || row["Rating Star"] || 0) || null;
+    const discountPercent = Number(String(row.Discount || row["Discount Percent"] || "").replace(/[^\d.]/g, "")) || null;
     const product = {
       id: nextId++,
       title: row["Item Name"].trim(),
@@ -163,6 +166,8 @@ async function worker() {
       sales: row.Sales || null,
       storeName: row["Nome da loja"] || null,
       marketplace: "Shopee",
+      ...(rating ? { rating } : {}),
+      ...(discountPercent ? { discountPercent } : {}),
     };
     existing.push(product);
     existingBySourceId.set(product.sourceItemId, product);
@@ -173,12 +178,16 @@ async function worker() {
 await Promise.all(Array.from({ length: 10 }, worker));
 for (const row of rowsById.values()) {
   const product = existingBySourceId.get(row["Item Id"]);
-  if (!product || product.createdAt === "2026-08-13 01:29:10") continue;
+  if (!product || newlyAddedIds.has(row["Item Id"])) continue;
   product.productUrl = row["Offer Link"];
   product.price = row.Price ? `R$ ${row.Price}` : product.price ?? null;
   product.sales = row.Sales || product.sales || null;
   product.storeName = row["Nome da loja"] || product.storeName || null;
   product.marketplace = "Shopee";
+  const rating = Number(row.Rating || row["Rating Star"] || 0) || product.rating || null;
+  const discountPercent = Number(String(row.Discount || row["Discount Percent"] || "").replace(/[^\d.]/g, "")) || product.discountPercent || null;
+  if (rating) product.rating = rating; else delete product.rating;
+  if (discountPercent) product.discountPercent = discountPercent; else delete product.discountPercent;
   updated += 1;
 }
 
