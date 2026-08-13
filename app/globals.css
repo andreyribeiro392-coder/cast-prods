@@ -972,3 +972,76 @@ main { position: relative; z-index: 1; }
   .account-search-trigger { background: var(--purple) !important; border-color: var(--lime) !important; box-shadow: 0 0 24px rgba(155,65,255,.5); color: white !important; }
   .search-panel::before { display: none; }
 }
+
+/* Conversion, trust and information pages */
+.trust-strip {
+  background: #0d0b10;
+  border-bottom: 1px solid rgba(168,255,0,.18);
+  border-top: 1px solid rgba(168,255,0,.18);
+  display: grid;
+  gap: 1px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 0 clamp(18px, 5vw, 80px);
+}
+.trust-strip > div { align-items: center; display: flex; gap: 16px; min-height: 118px; padding: 24px clamp(10px, 2vw, 32px); }
+.trust-strip > div + div { border-left: 1px solid rgba(155,65,255,.25); }
+.trust-strip b { color: var(--purple); font: 900 26px Georgia, serif; }
+.trust-strip span { color: #9f9ba5; font-size: 11px; line-height: 1.5; }
+.trust-strip strong { color: #f4f3ef; display: block; font-size: 13px; margin-bottom: 3px; text-transform: uppercase; }
+
+.featured-section { padding: clamp(82px, 9vw, 132px) clamp(18px, 5vw, 80px); }
+.featured-section > .product-grid, .featured-heading { margin-left: auto; margin-right: auto; max-width: 1500px; }
+.featured-actions { display: flex; justify-content: center; margin-top: 60px; }
+.primary-button--dark { box-shadow: 7px 7px 0 var(--purple); }
+
+.partner-badge {
+  background: var(--purple-deep);
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 999px;
+  bottom: 12px;
+  color: white;
+  font-size: 8px;
+  font-weight: 900;
+  left: 12px;
+  letter-spacing: .1em;
+  padding: 8px 10px;
+  position: absolute;
+}
+
+.site-footer { align-items: start; display: grid; gap: 32px; grid-template-columns: 1fr auto minmax(220px, 360px); }
+.footer-brand-block p { margin: 14px 0 0; }
+.footer-links { display: flex; flex-wrap: wrap; gap: 12px 22px; max-width: 360px; }
+.footer-links a { color: #dedbd4; font-size: 11px; font-weight: 800; }
+.footer-links a:hover { color: var(--lime); }
+.footer-disclosure { line-height: 1.6; margin: 0; }
+
+.info-page { min-height: 100vh; }
+.info-header { color: #f4f3ef; }
+.info-home-link { border: 1px solid rgba(168,255,0,.45); border-radius: 999px; font-size: 10px; font-weight: 900; padding: 12px 16px; text-transform: uppercase; }
+.info-home-link:hover { background: var(--lime); color: #070609; }
+.info-hero { background: linear-gradient(120deg, #08060a, #321055); border-bottom: 1px solid rgba(168,255,0,.2); padding: clamp(110px, 14vw, 190px) clamp(22px, 9vw, 150px) clamp(72px, 9vw, 120px); }
+.info-hero h1 { font-size: clamp(54px, 8vw, 110px); letter-spacing: -.075em; line-height: .88; margin: 0; max-width: 980px; text-transform: uppercase; text-shadow: 4px 4px 0 var(--purple-deep); }
+.info-hero > p:last-child { color: #b3afb8; font-size: clamp(15px, 1.6vw, 19px); line-height: 1.65; margin: 30px 0 0; max-width: 700px; }
+.info-content { margin: 0 auto; max-width: 980px; padding: clamp(70px, 9vw, 130px) 22px; }
+.info-content h2 { color: var(--lime); font-size: clamp(25px, 3vw, 38px); letter-spacing: -.04em; margin: 52px 0 12px; text-transform: uppercase; }
+.info-content h2:first-child { margin-top: 0; }
+.info-content p { color: #bbb7c0; font-size: 16px; line-height: 1.8; margin: 0; }
+
+@media (max-width: 900px) {
+  .trust-strip { grid-template-columns: 1fr; }
+  .trust-strip > div { min-height: 94px; }
+  .trust-strip > div + div { border-left: 0; border-top: 1px solid rgba(155,65,255,.25); }
+  .site-footer { grid-template-columns: 1fr 1fr; }
+  .footer-disclosure { grid-column: 1 / -1; }
+}
+
+@media (max-width: 620px) {
+  .featured-section { padding-left: 10px; padding-right: 10px; }
+  .featured-heading { padding-left: 8px; padding-right: 8px; }
+  .partner-badge { bottom: 7px; font-size: 6px; left: 7px; padding: 6px 7px; }
+  .site-footer { grid-template-columns: 1fr; }
+  .footer-disclosure { grid-column: auto; }
+  .info-header .brand { margin-left: 46px; }
+  .info-home-link { font-size: 8px; padding: 10px 11px; }
+  .info-content p { font-size: 14px; }
+}

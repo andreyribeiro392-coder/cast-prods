@@ -78,3 +78,15 @@ test("affiliate products remain unique", () => {
   `).all();
   assert.deepEqual(duplicates, []);
 });
+
+test("technology directory stays focused on devices and PC setup", () => {
+  const db = buildCatalog();
+  const normalize = (value) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const domesticOrBabyTerms = /\b(baba eletronica|baby monitor|monitor de bebe|campainha)\b/;
+  const misplaced = db.prepare(`
+    SELECT id, title
+    FROM products
+    WHERE department = 'tecnologia'
+  `).all().filter((product) => domesticOrBabyTerms.test(normalize(product.title)));
+  assert.deepEqual(misplaced, []);
+});
