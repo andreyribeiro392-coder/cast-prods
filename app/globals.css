@@ -444,6 +444,19 @@ footer p, footer > a:last-child { color: rgba(255,255,255,.45); font-size: 11px;
 }
 
 /* Marketplace navigation, scale and product details */
+.mobile-actions-menu { display: none; position: relative; }
+.mobile-actions-trigger { align-items: center; background: #100d14; border: 1px solid var(--purple); border-radius: 11px; color: var(--lime); cursor: pointer; display: flex; height: 38px; justify-content: center; width: 36px; }
+.mobile-actions-trigger span { font-size: 24px; font-weight: 900; line-height: .7; transform: translateY(-1px); }
+.mobile-actions-trigger:hover, .mobile-actions-trigger[aria-expanded="true"] { background: var(--lime); border-color: var(--lime); color: #070609; }
+.mobile-actions-popover { background: linear-gradient(145deg, #17131c, #080609); border: 1px solid rgba(155,65,255,.65); border-radius: 20px; box-shadow: 0 24px 70px rgba(0,0,0,.62); color: white; padding: 20px; position: absolute; right: 0; top: calc(100% + 12px); width: min(330px, calc(100vw - 28px)); z-index: 601; }
+.mobile-actions-popover > small { color: var(--lime); display: block; font-size: 8px; font-weight: 900; letter-spacing: .18em; }
+.mobile-actions-popover > strong { display: block; font-size: 19px; line-height: 1.15; margin: 7px 0 14px; }
+.mobile-actions-popover > a { align-items: center; border-top: 1px solid rgba(255,255,255,.1); display: grid; gap: 12px; grid-template-columns: 34px 1fr auto; padding: 14px 0; }
+.mobile-actions-popover > a > span:first-child { align-items: center; background: rgba(168,255,0,.1); border: 1px solid rgba(168,255,0,.35); border-radius: 10px; color: var(--lime); display: flex; font-size: 20px; height: 34px; justify-content: center; }
+.mobile-actions-popover a b { display: block; font-size: 12px; }
+.mobile-actions-popover a small { color: #938e98; display: block; font-size: 8px; line-height: 1.4; margin-top: 3px; }
+.mobile-actions-popover a i { color: var(--lime); font-size: 22px; font-style: normal; }
+
 .stores-menu { position: relative; }
 .stores-trigger { align-items: center; background: var(--purple); border: 1px solid rgba(168,255,0,.7); border-radius: 999px; color: white; cursor: pointer; display: flex; font-size: 15px; font-weight: 900; height: 38px; justify-content: center; letter-spacing: .1em; padding: 0 14px; }
 .stores-trigger:hover { background: var(--lime); color: #070609; }
@@ -1351,6 +1364,9 @@ main { position: relative; z-index: 1; }
   .header-nav { flex: 0 0 auto; gap: 5px; }
   .header-nav > a { display: none; }
   .nav-pill { display: none; }
+  .mobile-actions-menu { display: block; }
+  .mobile-actions-trigger { height: 34px; width: 34px; }
+  .mobile-actions-popover { position: fixed; right: 14px; top: 62px; }
   .stores-trigger { height: 34px; min-width: 38px; padding: 0 10px; }
   .account-search-trigger {
     align-items: center;
