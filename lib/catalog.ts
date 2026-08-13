@@ -198,12 +198,15 @@ export async function listProducts(filters: { audience?: Audience; department?: 
 }
 
 export async function getSetting(key: string): Promise<string> {
+  const fallback = key === "tiktok_url"
+    ? "https://www.tiktok.com/@castszadas?is_from_webapp=1&sender_device=pc"
+    : "";
   try {
     const db = await getDb();
     const [row] = await db.select().from(settings).where(eq(settings.key, key)).limit(1);
-    return row?.value ?? "";
+    return row?.value || fallback;
   } catch {
-    return "";
+    return fallback;
   }
 }
 

@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { AccountNav } from "@/components/account-nav";
-import { CatalogView } from "@/components/catalog-view";
+import { HomeHighlights } from "@/components/home-highlights";
 import { SiteFooter } from "@/components/site-footer";
 import { getSetting, listProducts, type CatalogProduct } from "@/lib/catalog";
+import { parseCatalogPrice } from "@/lib/price";
 
 const featuredIds = [433, 827, 619, 828, 826, 815, 830, 825];
 
@@ -19,6 +20,24 @@ function selectFeaturedProducts(products: CatalogProduct[]) {
     if (!preferred && departments.has(product.department)) continue;
     selected.push(product);
     departments.add(product.department);
+    if (selected.length === 8) break;
+  }
+  return selected;
+}
+
+function selectPriceHighlights(products: CatalogProduct[], maximum: number) {
+  const eligible = products
+    .filter((product) => {
+      const price = parseCatalogPrice(product.price);
+      return price !== null && price <= maximum;
+    })
+    .sort((left, right) => right.id - left.id);
+  const selected: CatalogProduct[] = [];
+  const categories = new Set<string>();
+  for (const product of eligible) {
+    if (categories.has(product.category) && selected.length < 6) continue;
+    selected.push(product);
+    categories.add(product.category);
     if (selected.length === 8) break;
   }
   return selected;
@@ -109,7 +128,7 @@ const directories = [
     eyebrow: "FERRAMENTAS E AUTO",
     title: "Mãos à obra",
     description: "Ferramentas, kits e acessórios automotivos para diferentes tarefas.",
-    image: "https://images.unsplash.com/photo-1581147036324-c1c89c2c8b5c?auto=format&fit=crop&w=1200&q=86",
+    image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=1200&q=86",
     className: "directory-card--tools",
   },
   {
@@ -125,6 +144,14 @@ const directories = [
 export default async function Home() {
   const [tiktokUrl, products] = await Promise.all([getSetting("tiktok_url"), listProducts()]);
   const featuredProducts = selectFeaturedProducts(products);
+  const highlightGroups = {
+    featured: featuredProducts,
+    "10": selectPriceHighlights(products, 10),
+    "19": selectPriceHighlights(products, 19),
+    "50": selectPriceHighlights(products, 50),
+    "100": selectPriceHighlights(products, 100),
+    "1000": selectPriceHighlights(products, 1000),
+  };
   return (
     <main>
       <header className="site-header site-header--overlay">
@@ -178,7 +205,7 @@ export default async function Home() {
           </div>
           <p>Uma seleção de categorias diferentes para você começar. Abra o anúncio para conferir preço, avaliações, estoque e entrega atualizados.</p>
         </div>
-        <CatalogView products={featuredProducts} simple />
+        <HomeHighlights groups={highlightGroups} />
         <div className="featured-actions">
           <a className="primary-button primary-button--dark" href="#departamentos">Ver todos os departamentos <span aria-hidden="true">↘</span></a>
         </div>

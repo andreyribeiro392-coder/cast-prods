@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { track } from "@vercel/analytics";
 import Link from "next/link";
 import type { AgeGroup, CatalogProduct, Category, Department } from "@/lib/catalog";
+import { parseCatalogPrice } from "@/lib/price";
 import { getProductDisplayTitle, getProductPitch } from "@/lib/product-copy";
 import type { SavedAction } from "@/lib/saved-products";
 
@@ -101,9 +102,7 @@ const categoryOrder = Object.keys(categoryLabels) as Category[];
 type SortMode = "relevance" | "price-asc" | "price-desc" | "sales" | "rating" | "discount" | "popular";
 
 function numericPrice(product: CatalogProduct) {
-  if (!product.price) return null;
-  const parsed = Number(product.price.replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", "."));
-  return Number.isFinite(parsed) ? parsed : null;
+  return parseCatalogPrice(product.price);
 }
 
 function salesScore(product: CatalogProduct) {
@@ -278,6 +277,19 @@ export function CatalogView({
         </select></label>
         <button aria-pressed={onlyOffers} className={onlyOffers ? "offers-toggle offers-toggle--active" : "offers-toggle"} disabled={!hasDiscounts} onClick={() => { setOnlyOffers((value) => !value); setVisibleCount(24); }} type="button"><b>%</b><span>Somente ofertas<small>{hasDiscounts ? "Promoções anunciadas" : "Sem ofertas informadas"}</small></span></button>
         <button className="clear-catalog-filters" disabled={!minimumPrice && !maximumPrice && !onlyOffers && sortMode === "relevance"} onClick={() => { setMinimumPrice(""); setMaximumPrice(""); setOnlyOffers(false); setSortMode("relevance"); setVisibleCount(24); }} type="button">Limpar filtros</button>
+      </div>
+      <div className="catalog-price-shortcuts" role="group" aria-label="Atalhos de preço máximo">
+        {[10, 19, 50, 100, 1000].map((limit) => (
+          <button
+            aria-pressed={maximumPrice === String(limit)}
+            className={maximumPrice === String(limit) ? "catalog-price-shortcut catalog-price-shortcut--active" : "catalog-price-shortcut"}
+            key={limit}
+            onClick={() => { setMaximumPrice(String(limit)); setVisibleCount(24); }}
+            type="button"
+          >
+            Até R$ {limit.toLocaleString("pt-BR")}
+          </button>
+        ))}
       </div>
       <div className="filter-row" role="group" aria-label="Filtrar produtos por categoria">
         <button
