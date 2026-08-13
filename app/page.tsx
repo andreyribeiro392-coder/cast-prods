@@ -5,9 +5,20 @@ import { SiteFooter } from "@/components/site-footer";
 import { getSetting, listProducts, type CatalogProduct } from "@/lib/catalog";
 import { parseCatalogPrice } from "@/lib/price";
 
-const featuredIds = [433, 827, 619, 828, 826, 815, 830, 825];
+const DEFAULT_FEATURED_IDS = [433, 827, 619, 828, 826, 815, 830, 825];
 
-function selectFeaturedProducts(products: CatalogProduct[]) {
+function parseFeaturedIds(value: string) {
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    return Array.isArray(parsed)
+      ? parsed.filter((id): id is number => Number.isInteger(id) && id > 0)
+      : DEFAULT_FEATURED_IDS;
+  } catch {
+    return DEFAULT_FEATURED_IDS;
+  }
+}
+
+function selectFeaturedProducts(products: CatalogProduct[], featuredIds: number[]) {
   const ranked = [...products].sort((a, b) => {
     const aRank = featuredIds.indexOf(a.id);
     const bRank = featuredIds.indexOf(b.id);
@@ -142,8 +153,13 @@ const directories = [
 ];
 
 export default async function Home() {
-  const [tiktokUrl, products] = await Promise.all([getSetting("tiktok_url"), listProducts()]);
-  const featuredProducts = selectFeaturedProducts(products);
+  const [tiktokUrl, products, featuredIdsValue] = await Promise.all([
+    getSetting("tiktok_url"),
+    listProducts(),
+    getSetting("featured_product_ids"),
+  ]);
+  const featuredIds = parseFeaturedIds(featuredIdsValue);
+  const featuredProducts = selectFeaturedProducts(products, featuredIds);
   const highlightGroups = {
     featured: featuredProducts,
     "10": selectPriceHighlights(products, 10),
