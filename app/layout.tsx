@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://cast-prods.vercel.app"),
   title: { default: "CAST.PRODS | Achados e ofertas", template: "%s | CAST.PRODS" },
   description: "cast.prods — achados de moda, casa, tecnologia, beleza, academia, ferramentas, esporte e muito mais.",
-  other: { "codex-preview": "development", "cast-theme": "joker-v2" },
+  other: { "codex-preview": "development", "cast-theme": "joker-v3-professional" },
   icons: {
     icon: [{ url: "/cast-prods-logo.svg", type: "image/svg+xml" }],
     shortcut: "/cast-prods-logo.svg",
