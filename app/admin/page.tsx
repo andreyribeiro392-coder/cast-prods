@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { AdminDashboard } from "@/components/admin-dashboard";
 import { BackButton } from "@/components/back-button";
 import { requireChatGPTUser, chatGPTSignOutPath } from "@/app/chatgpt-auth";
@@ -7,6 +8,10 @@ import { isAdminEmail } from "@/lib/admin";
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
+  if (process.env.VERCEL) {
+    redirect("https://site-andrei.xtzadas.chatgpt.site/admin");
+  }
+
   const user = await requireChatGPTUser("/admin");
   const isAdmin = isAdminEmail(user.email);
 
