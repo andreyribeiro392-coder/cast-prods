@@ -174,7 +174,47 @@ export const sampleProducts: CatalogProduct[] = [
 
 const preservedProducts = seededProducts as CatalogProduct[];
 
+const CATALOG_API_URL = "https://site-andrei.xtzadas.chatgpt.site/api/catalog";
+
+type RemoteCatalog = {
+  products: CatalogProduct[];
+  settings: Record<string, string>;
+};
+
+async function getRemoteCatalog(): Promise<RemoteCatalog | null> {
+  if (!process.env.VERCEL) return null;
+
+  try {
+    const response = await fetch(CATALOG_API_URL, {
+      cache: "no-store",
+      headers: { accept: "application/json" },
+    });
+    if (!response.ok) return null;
+
+    const payload = await response.json() as Partial<RemoteCatalog>;
+    if (!Array.isArray(payload.products)) return null;
+
+    return {
+      products: payload.products as CatalogProduct[],
+      settings: payload.settings && typeof payload.settings === "object"
+        ? payload.settings as Record<string, string>
+        : {},
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function listProducts(filters: { audience?: Audience; department?: Department; ageGroup?: AgeGroup } = {}): Promise<CatalogProduct[]> {
+  const remoteCatalog = await getRemoteCatalog();
+  if (remoteCatalog) {
+    return remoteCatalog.products.filter((item) =>
+      (!filters.audience || item.audience === filters.audience) &&
+      (!filters.department || item.department === filters.department) &&
+      (!filters.ageGroup || item.ageGroup === filters.ageGroup),
+    );
+  }
+
   try {
     const db = await getDb();
     const conditions: SQL[] = [];
@@ -201,6 +241,9 @@ export async function getSetting(key: string): Promise<string> {
   const fallback = key === "tiktok_url"
     ? "https://www.tiktok.com/@castszadas?is_from_webapp=1&sender_device=pc"
     : "";
+  const remoteCatalog = await getRemoteCatalog();
+  if (remoteCatalog) return remoteCatalog.settings[key] || fallback;
+
   try {
     const db = await getDb();
     const [row] = await db.select().from(settings).where(eq(settings.key, key)).limit(1);
@@ -212,6 +255,9 @@ export async function getSetting(key: string): Promise<string> {
 
 export async function getProductById(id: number): Promise<CatalogProduct | null> {
   if (!Number.isInteger(id) || id < 1) return null;
+  const remoteCatalog = await getRemoteCatalog();
+  if (remoteCatalog) return remoteCatalog.products.find((product) => product.id === id) ?? null;
+
   try {
     const db = await getDb();
     const [row] = await db.select().from(products).where(eq(products.id, id)).limit(1);
