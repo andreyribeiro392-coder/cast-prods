@@ -19,21 +19,10 @@ function parseFeaturedIds(value: string) {
 }
 
 function selectFeaturedProducts(products: CatalogProduct[], featuredIds: number[]) {
-  const ranked = [...products].sort((a, b) => {
-    const aRank = featuredIds.indexOf(a.id);
-    const bRank = featuredIds.indexOf(b.id);
-    return (aRank < 0 ? 999 : aRank) - (bRank < 0 ? 999 : bRank);
-  });
-  const selected: CatalogProduct[] = [];
-  const departments = new Set<string>();
-  for (const product of ranked) {
-    const preferred = featuredIds.includes(product.id);
-    if (!preferred && departments.has(product.department)) continue;
-    selected.push(product);
-    departments.add(product.department);
-    if (selected.length === 8) break;
-  }
-  return selected;
+  const productsById = new Map(products.map((product) => [product.id, product]));
+  return featuredIds
+    .map((id) => productsById.get(id))
+    .filter((product): product is CatalogProduct => Boolean(product));
 }
 
 function selectPriceHighlights(products: CatalogProduct[], maximum: number) {
