@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ProductSearch } from "@/components/product-search";
 import { StoresMenu } from "@/components/stores-menu";
+import { MobileAccountMenu } from "@/components/mobile-account-menu";
 
 export function AccountNav() {
   return (
@@ -12,6 +13,7 @@ export function AccountNav() {
       <Link className="account-link" href="/carrinho" aria-label="Abrir carrinho">
         <span aria-hidden="true">▱</span><b>Carrinho</b>
       </Link>
+      <MobileAccountMenu />
       <StoresMenu />
     </div>
   );
