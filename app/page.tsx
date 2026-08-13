@@ -5,24 +5,24 @@ import { SiteFooter } from "@/components/site-footer";
 import { getSetting, listProducts, type CatalogProduct } from "@/lib/catalog";
 import { parseCatalogPrice } from "@/lib/price";
 
-const featuredIds = [433, 827, 619, 828, 826, 815, 830, 825];
+const DEFAULT_FEATURED_IDS = [433, 827, 619, 828, 826, 815, 830, 825];
 
-function selectFeaturedProducts(products: CatalogProduct[]) {
-  const ranked = [...products].sort((a, b) => {
-    const aRank = featuredIds.indexOf(a.id);
-    const bRank = featuredIds.indexOf(b.id);
-    return (aRank < 0 ? 999 : aRank) - (bRank < 0 ? 999 : bRank);
-  });
-  const selected: CatalogProduct[] = [];
-  const departments = new Set<string>();
-  for (const product of ranked) {
-    const preferred = featuredIds.includes(product.id);
-    if (!preferred && departments.has(product.department)) continue;
-    selected.push(product);
-    departments.add(product.department);
-    if (selected.length === 8) break;
+function parseFeaturedIds(value: string) {
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    return Array.isArray(parsed)
+      ? parsed.filter((id): id is number => Number.isInteger(id) && id > 0)
+      : DEFAULT_FEATURED_IDS;
+  } catch {
+    return DEFAULT_FEATURED_IDS;
   }
-  return selected;
+}
+
+function selectFeaturedProducts(products: CatalogProduct[], featuredIds: number[]) {
+  const productsById = new Map(products.map((product) => [product.id, product]));
+  return featuredIds
+    .map((id) => productsById.get(id))
+    .filter((product): product is CatalogProduct => Boolean(product));
 }
 
 function selectPriceHighlights(products: CatalogProduct[], maximum: number) {
@@ -142,8 +142,13 @@ const directories = [
 ];
 
 export default async function Home() {
-  const [tiktokUrl, products] = await Promise.all([getSetting("tiktok_url"), listProducts()]);
-  const featuredProducts = selectFeaturedProducts(products);
+  const [tiktokUrl, products, featuredIdsValue] = await Promise.all([
+    getSetting("tiktok_url"),
+    listProducts(),
+    getSetting("featured_product_ids"),
+  ]);
+  const featuredIds = parseFeaturedIds(featuredIdsValue);
+  const featuredProducts = selectFeaturedProducts(products, featuredIds);
   const highlightGroups = {
     featured: featuredProducts,
     "10": selectPriceHighlights(products, 10),
