@@ -98,6 +98,25 @@ const ageLabels: Record<AgeGroup, { eyebrow: string; title: string; description:
 
 const categoryOrder = Object.keys(categoryLabels) as Category[];
 
+type SortMode = "relevance" | "price-asc" | "price-desc" | "sales" | "rating" | "discount" | "popular";
+
+function numericPrice(product: CatalogProduct) {
+  if (!product.price) return null;
+  const parsed = Number(product.price.replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", "."));
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function salesScore(product: CatalogProduct) {
+  const value = product.sales?.toLowerCase().replace(/\s/g, "") ?? "";
+  const amount = Number(value.replace(/[^\d,.]/g, "").replace(",", ".")) || 0;
+  return value.includes("mil") ? amount * 1_000 : amount;
+}
+
+function advertisedOffer(product: CatalogProduct) {
+  return Boolean(product.discountPercent && product.discountPercent > 0)
+    || /\b(promo(?:ç|c)ão|oferta|desconto|liquida(?:ç|c)ão)\b/i.test(product.title);
+}
+
 function initialAgeFor(products: CatalogProduct[]): AgeGroup {
   return products.some((product) => product.ageGroup === "adulto") ? "adulto" : "infantil";
 }
@@ -122,6 +141,11 @@ export function CatalogView({
   const [savedLoaded, setSavedLoaded] = useState(false);
   const [notice, setNotice] = useState("");
   const [visibleCount, setVisibleCount] = useState(simple ? 12 : 24);
+  const [sortMode, setSortMode] = useState<SortMode>("relevance");
+  const [onlyOffers, setOnlyOffers] = useState(false);
+  const [minimumPrice, setMinimumPrice] = useState("");
+  const [maximumPrice, setMaximumPrice] = useState("");
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -141,11 +165,39 @@ export function CatalogView({
       : visibleForAge.filter((product) => product.category === category),
     [category, simple, visibleForAge],
   );
-  const filtered = useMemo(() => {
+  const savedFiltered = useMemo(() => {
     if (!savedOnly) return categoryFiltered;
     const savedIds = savedOnly === "liked" ? likedIds : cartIds;
     return categoryFiltered.filter((product) => savedIds.has(product.id));
   }, [cartIds, categoryFiltered, likedIds, savedOnly]);
+  const hasRatings = useMemo(() => products.some((product) => typeof product.rating === "number" && product.rating > 0), [products]);
+  const hasDiscounts = useMemo(() => products.some(advertisedOffer), [products]);
+  const priceLimits = useMemo(() => {
+    const prices = products.map(numericPrice).filter((price): price is number => price !== null);
+    return prices.length ? { min: Math.floor(Math.min(...prices)), max: Math.ceil(Math.max(...prices)) } : null;
+  }, [products]);
+  const filtered = useMemo(() => {
+    const min = minimumPrice === "" ? null : Number(minimumPrice);
+    const max = maximumPrice === "" ? null : Number(maximumPrice);
+    const next = savedFiltered.filter((product) => {
+      const price = numericPrice(product);
+      if (min !== null && (price === null || price < min)) return false;
+      if (max !== null && (price === null || price > max)) return false;
+      if (onlyOffers && !advertisedOffer(product)) return false;
+      return true;
+    });
+    return [...next].sort((left, right) => {
+      const leftPrice = numericPrice(left);
+      const rightPrice = numericPrice(right);
+      if (sortMode === "price-asc") return (leftPrice ?? Infinity) - (rightPrice ?? Infinity);
+      if (sortMode === "price-desc") return (rightPrice ?? -1) - (leftPrice ?? -1);
+      if (sortMode === "sales") return salesScore(right) - salesScore(left);
+      if (sortMode === "rating") return (right.rating ?? 0) - (left.rating ?? 0);
+      if (sortMode === "discount") return (right.discountPercent ?? 0) - (left.discountPercent ?? 0);
+      if (sortMode === "popular") return (salesScore(right) * 100 + right.id) - (salesScore(left) * 100 + left.id);
+      return 0;
+    });
+  }, [maximumPrice, minimumPrice, onlyOffers, savedFiltered, sortMode]);
   const availableCategories = useMemo(
     () => categoryOrder.filter((item) => visibleForAge.some((product) => product.category === item)),
     [visibleForAge],
@@ -208,6 +260,25 @@ export function CatalogView({
         <div><span>MODALIDADES</span><strong>Escolha uma categoria</strong></div>
         <small>{filtered.length} {filtered.length === 1 ? "produto encontrado" : "produtos encontrados"}</small>
       </div>
+      <button aria-expanded={mobileFiltersOpen} className="mobile-filter-toggle" onClick={() => setMobileFiltersOpen((value) => !value)} type="button"><span>Preço e ordenação</span><b>{mobileFiltersOpen ? "Fechar ×" : "Abrir filtros +"}</b></button>
+      <div className={mobileFiltersOpen ? "catalog-controls catalog-controls--mobile-open" : "catalog-controls"} aria-label="Preço e ordem dos produtos">
+        <div className="price-control">
+          <span>FAIXA DE PREÇO</span>
+          <label>De R$<input inputMode="decimal" min={priceLimits?.min ?? 0} onChange={(event) => { setMinimumPrice(event.target.value); setVisibleCount(24); }} placeholder={priceLimits ? String(priceLimits.min) : "0"} type="number" value={minimumPrice} /></label>
+          <label>Até R$<input inputMode="decimal" min={0} onChange={(event) => { setMaximumPrice(event.target.value); setVisibleCount(24); }} placeholder={priceLimits ? String(priceLimits.max) : "999"} type="number" value={maximumPrice} /></label>
+        </div>
+        <label className="sort-control"><span>ORDENAR POR</span><select onChange={(event) => { setSortMode(event.target.value as SortMode); setVisibleCount(24); }} value={sortMode}>
+          <option value="relevance">Recomendados</option>
+          <option value="price-asc">Menor preço</option>
+          <option value="price-desc">Maior preço</option>
+          <option value="sales">Mais vendidos</option>
+          <option value="popular">Mais populares</option>
+          <option disabled={!hasRatings} value="rating">Melhor avaliados{!hasRatings ? " — aguardando dados" : ""}</option>
+          <option disabled={!products.some((product) => product.discountPercent)} value="discount">Maior desconto</option>
+        </select></label>
+        <button aria-pressed={onlyOffers} className={onlyOffers ? "offers-toggle offers-toggle--active" : "offers-toggle"} disabled={!hasDiscounts} onClick={() => { setOnlyOffers((value) => !value); setVisibleCount(24); }} type="button"><b>%</b><span>Somente ofertas<small>{hasDiscounts ? "Promoções anunciadas" : "Sem ofertas informadas"}</small></span></button>
+        <button className="clear-catalog-filters" disabled={!minimumPrice && !maximumPrice && !onlyOffers && sortMode === "relevance"} onClick={() => { setMinimumPrice(""); setMaximumPrice(""); setOnlyOffers(false); setSortMode("relevance"); setVisibleCount(24); }} type="button">Limpar filtros</button>
+      </div>
       <div className="filter-row" role="group" aria-label="Filtrar produtos por categoria">
         <button
           aria-pressed={category === null}
@@ -252,6 +323,10 @@ export function CatalogView({
                 {(product.price || product.sales) && <div className="product-commerce-facts">
                   {product.price && <strong>{product.price}</strong>}
                   {product.sales && <small>{product.sales} vendidos</small>}
+                </div>}
+                {(product.rating || product.discountPercent) && <div className="product-market-signals">
+                  {product.rating && <span aria-label={`${product.rating} de 5 estrelas`}>★ {product.rating.toFixed(1)}</span>}
+                  {product.discountPercent && <b>-{product.discountPercent}%</b>}
                 </div>}
                 {!isSample && <div className="product-save-actions">
                   <button

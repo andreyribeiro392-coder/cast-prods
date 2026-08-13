@@ -81,6 +81,8 @@ export type CatalogProduct = {
   sales?: string | null;
   storeName?: string | null;
   marketplace?: string | null;
+  rating?: number | null;
+  discountPercent?: number | null;
 };
 
 export const sampleProducts: CatalogProduct[] = [
