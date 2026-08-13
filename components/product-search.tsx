@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { track } from "@vercel/analytics";
+import { getProductDisplayTitle } from "@/lib/product-copy";
 
 type SearchProduct = {
   id: number;
@@ -122,12 +124,16 @@ export function ProductSearch() {
           <div className="search-results">
             {results.map((product) => {
               const imageSrc = product.imageKey ? `/api/images/${encodeURIComponent(product.imageKey)}` : product.imageUrl;
+              const displayTitle = getProductDisplayTitle(product.title);
               return (
-                <a href={product.productUrl} key={product.id} onClick={() => setOpen(false)} rel="noopener noreferrer sponsored" target="_blank">
+                <a href={product.productUrl} key={product.id} onClick={() => {
+                  track("busca_produto_aberto", { categoria: product.category, departamento: product.department, produto: displayTitle });
+                  setOpen(false);
+                }} rel="noopener noreferrer sponsored" target="_blank">
                   {imageSrc ? <img alt="" src={imageSrc} /> : <span className="search-result-placeholder">CAST</span>}
                   <span className="search-result-copy">
                     <small>{departmentLabels[product.department] || product.department} • {readableCategory(product.category)}</small>
-                    <strong>{product.title}</strong>
+                    <strong title={product.title}>{displayTitle}</strong>
                   </span>
                   <b aria-hidden="true">↗</b>
                 </a>

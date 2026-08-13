@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AccountNav } from "@/components/account-nav";
 import { BackButton } from "@/components/back-button";
 import { CatalogView } from "@/components/catalog-view";
+import { SiteFooter } from "@/components/site-footer";
 import type { CatalogProduct, Department } from "@/lib/catalog";
 
 type DirectoryPageKey = Department | "infantil";
@@ -45,7 +46,7 @@ export async function DepartmentPage({ directory, products, tiktokUrl }: { direc
           showAgeGrouping={directory === "acessorios"}
         />
       </section>
-      <footer><Link className="brand brand--footer" href="/">CAST<span>.PRODS</span></Link><p>Achados para todos os momentos.</p></footer>
+      <SiteFooter />
     </main>
   );
 }

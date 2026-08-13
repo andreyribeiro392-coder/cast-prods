@@ -1,6 +1,28 @@
 import Link from "next/link";
 import { AccountNav } from "@/components/account-nav";
-import { getSetting } from "@/lib/catalog";
+import { CatalogView } from "@/components/catalog-view";
+import { SiteFooter } from "@/components/site-footer";
+import { getSetting, listProducts, type CatalogProduct } from "@/lib/catalog";
+
+const featuredIds = [433, 827, 619, 828, 826, 815, 830, 825];
+
+function selectFeaturedProducts(products: CatalogProduct[]) {
+  const ranked = [...products].sort((a, b) => {
+    const aRank = featuredIds.indexOf(a.id);
+    const bRank = featuredIds.indexOf(b.id);
+    return (aRank < 0 ? 999 : aRank) - (bRank < 0 ? 999 : bRank);
+  });
+  const selected: CatalogProduct[] = [];
+  const departments = new Set<string>();
+  for (const product of ranked) {
+    const preferred = featuredIds.includes(product.id);
+    if (!preferred && departments.has(product.department)) continue;
+    selected.push(product);
+    departments.add(product.department);
+    if (selected.length === 8) break;
+  }
+  return selected;
+}
 
 export const dynamic = "force-dynamic";
 
@@ -101,7 +123,8 @@ const directories = [
 ];
 
 export default async function Home() {
-  const tiktokUrl = await getSetting("tiktok_url");
+  const [tiktokUrl, products] = await Promise.all([getSetting("tiktok_url"), listProducts()]);
+  const featuredProducts = selectFeaturedProducts(products);
   return (
     <main>
       <header className="site-header site-header--overlay">
@@ -139,6 +162,26 @@ export default async function Home() {
           </a>
         </div>
         <p className="scroll-cue"><span /> Role para descobrir</p>
+      </section>
+
+      <section className="trust-strip" aria-label="Como comprar">
+        <div><b>01</b><span><strong>Escolha seu achado</strong>Use categorias ou pesquisa.</span></div>
+        <div><b>02</b><span><strong>Confira a oferta atual</strong>Preço e estoque aparecem na loja.</span></div>
+        <div><b>03</b><span><strong>Compre na plataforma</strong>Pagamento e entrega são feitos pela parceira.</span></div>
+      </section>
+
+      <section className="featured-section" id="destaques">
+        <div className="section-heading featured-heading">
+          <div>
+            <p className="eyebrow eyebrow--dark">SELEÇÃO DA SEMANA</p>
+            <h2>Achados em<br />destaque.</h2>
+          </div>
+          <p>Uma seleção de categorias diferentes para você começar. Abra o anúncio para conferir preço, avaliações, estoque e entrega atualizados.</p>
+        </div>
+        <CatalogView products={featuredProducts} simple />
+        <div className="featured-actions">
+          <a className="primary-button primary-button--dark" href="#departamentos">Ver todos os departamentos <span aria-hidden="true">↘</span></a>
+        </div>
       </section>
 
       <section className="directory-section fashion-section" id="moda">
@@ -211,10 +254,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <footer>
-        <Link className="brand brand--footer" href="/">CAST<span>.PRODS</span></Link>
-        <p>Achados para todos os momentos.</p>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }

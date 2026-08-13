@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { track } from "@vercel/analytics";
 import type { AgeGroup, CatalogProduct, Category, Department } from "@/lib/catalog";
+import { getProductDisplayTitle, getProductPitch } from "@/lib/product-copy";
 import type { SavedAction } from "@/lib/saved-products";
 
 const storageKeys: Record<SavedAction, string> = {
@@ -99,12 +101,6 @@ function initialAgeFor(products: CatalogProduct[]): AgeGroup {
   return products.some((product) => product.ageGroup === "adulto") ? "adulto" : "infantil";
 }
 
-function firstCategoryFor(products: CatalogProduct[], ageGroup: AgeGroup): Category | null {
-  return categoryOrder.find((item) => products.some(
-    (product) => product.ageGroup === ageGroup && product.category === item,
-  )) ?? null;
-}
-
 export function CatalogView({
   products,
   emptyMessage = "Nenhum produto encontrado neste subdiretório.",
@@ -119,20 +115,19 @@ export function CatalogView({
   showAgeGrouping?: boolean;
 }) {
   const [ageGroup, setAgeGroup] = useState<AgeGroup>(() => initialAgeFor(products));
-  const [category, setCategory] = useState<Category | null>(() => {
-    if (simple) return null;
-    const initialAge = initialAgeFor(products);
-    return firstCategoryFor(products, initialAge);
-  });
+  const [category, setCategory] = useState<Category | null>(null);
   const [likedIds, setLikedIds] = useState(() => new Set<number>());
   const [cartIds, setCartIds] = useState(() => new Set<number>());
   const [savedLoaded, setSavedLoaded] = useState(false);
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
-    setLikedIds(new Set(readSavedIds("liked")));
-    setCartIds(new Set(readSavedIds("cart")));
-    setSavedLoaded(true);
+    const frame = window.requestAnimationFrame(() => {
+      setLikedIds(new Set(readSavedIds("liked")));
+      setCartIds(new Set(readSavedIds("cart")));
+      setSavedLoaded(true);
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, []);
   const visibleForAge = useMemo(
     () => simple || !showAgeGrouping ? products : products.filter((product) => product.ageGroup === ageGroup),
@@ -162,7 +157,7 @@ export function CatalogView({
 
   function selectAge(nextAge: AgeGroup) {
     setAgeGroup(nextAge);
-    setCategory(firstCategoryFor(products, nextAge));
+    setCategory(null);
   }
 
   function toggleSaved(productId: number, action: SavedAction) {
@@ -211,6 +206,14 @@ export function CatalogView({
         <small>{filtered.length} {filtered.length === 1 ? "produto encontrado" : "produtos encontrados"}</small>
       </div>
       <div className="filter-row" role="group" aria-label="Filtrar produtos por categoria">
+        <button
+          aria-pressed={category === null}
+          className={category === null ? "filter-button filter-button--active" : "filter-button"}
+          onClick={() => setCategory(null)}
+          type="button"
+        >
+          Todos
+        </button>
         {availableCategories.map((item) => (
           <button
             aria-pressed={category === item}
@@ -229,18 +232,20 @@ export function CatalogView({
         {filtered.map((product, index) => {
           const imageSrc = product.imageKey ? `/api/images/${encodeURIComponent(product.imageKey)}` : product.imageUrl;
           const isSample = product.productUrl === "#";
+          const displayTitle = getProductDisplayTitle(product.title);
           return (
             <article className="product-card" key={product.id} style={{ animationDelay: `${index * 80}ms` }}>
               <div className="product-image-wrap">
-                {imageSrc ? <img src={imageSrc} alt={product.title} /> : <div className="product-placeholder">CAST.PRODS</div>}
+                {imageSrc ? <img src={imageSrc} alt={displayTitle} /> : <div className="product-placeholder">CAST.PRODS</div>}
                 <span className="product-category">{categoryLabels[product.category]}</span>
+                {!isSample && <span className="partner-badge">OFERTA NA SHOPEE</span>}
                 {showAgeGrouping && product.ageGroup !== "geral" && <span className="product-age">{product.ageGroup === "infantil" ? "INFANTIL" : "ADULTO"}</span>}
                 {isSample && <span className="sample-badge">DEMO</span>}
               </div>
               <div className="product-info">
                 <p>{showAgeGrouping && product.ageGroup === "infantil" ? `${departmentLabels[product.department]} • INFANTIL` : `${departmentLabels[product.department]} • ${product.audience === "unissex" ? "UNISSEX" : product.audience.toUpperCase()}`}</p>
-                <h2>{product.title}</h2>
-                <span>{product.description}</span>
+                <h2 title={product.title}>{displayTitle}</h2>
+                <span>{getProductPitch(product)}</span>
                 {!isSample && <div className="product-save-actions">
                   <button
                     aria-pressed={likedIds.has(product.id)}
@@ -264,8 +269,14 @@ export function CatalogView({
                 {isSample ? (
                   <span className="product-link product-link--disabled">Link adicionado pelo administrador</span>
                 ) : (
-                  <a className="product-link" href={product.productUrl} rel="noopener noreferrer sponsored" target="_blank">
-                    Ver produto <b aria-hidden="true">↗</b>
+                  <a
+                    className="product-link"
+                    href={product.productUrl}
+                    onClick={() => track("produto_aberto", { categoria: product.category, departamento: product.department, produto: displayTitle })}
+                    rel="noopener noreferrer sponsored"
+                    target="_blank"
+                  >
+                    Ver preço atualizado <b aria-hidden="true">↗</b>
                   </a>
                 )}
               </div>
