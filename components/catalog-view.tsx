@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { track } from "@vercel/analytics";
+import Link from "next/link";
 import type { AgeGroup, CatalogProduct, Category, Department } from "@/lib/catalog";
 import { getProductDisplayTitle, getProductPitch } from "@/lib/product-copy";
 import type { SavedAction } from "@/lib/saved-products";
@@ -120,6 +121,7 @@ export function CatalogView({
   const [cartIds, setCartIds] = useState(() => new Set<number>());
   const [savedLoaded, setSavedLoaded] = useState(false);
   const [notice, setNotice] = useState("");
+  const [visibleCount, setVisibleCount] = useState(simple ? 12 : 24);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -158,6 +160,7 @@ export function CatalogView({
   function selectAge(nextAge: AgeGroup) {
     setAgeGroup(nextAge);
     setCategory(null);
+    setVisibleCount(24);
   }
 
   function toggleSaved(productId: number, action: SavedAction) {
@@ -209,7 +212,7 @@ export function CatalogView({
         <button
           aria-pressed={category === null}
           className={category === null ? "filter-button filter-button--active" : "filter-button"}
-          onClick={() => setCategory(null)}
+          onClick={() => { setCategory(null); setVisibleCount(24); }}
           type="button"
         >
           Todos
@@ -219,7 +222,7 @@ export function CatalogView({
             aria-pressed={category === item}
             className={category === item ? "filter-button filter-button--active" : "filter-button"}
             key={item}
-            onClick={() => setCategory(item)}
+            onClick={() => { setCategory(item); setVisibleCount(24); }}
             type="button"
           >
             {categoryLabels[item]}
@@ -229,14 +232,14 @@ export function CatalogView({
       </>}
 
       <div className="product-grid">
-        {filtered.map((product, index) => {
+        {filtered.slice(0, visibleCount).map((product, index) => {
           const imageSrc = product.imageKey ? `/api/images/${encodeURIComponent(product.imageKey)}` : product.imageUrl;
           const isSample = product.productUrl === "#";
           const displayTitle = getProductDisplayTitle(product.title);
           return (
             <article className="product-card" key={product.id} style={{ animationDelay: `${index * 80}ms` }}>
               <div className="product-image-wrap">
-                {imageSrc ? <img src={imageSrc} alt={displayTitle} /> : <div className="product-placeholder">CAST.PRODS</div>}
+                {imageSrc ? <img src={imageSrc} alt={displayTitle} loading={index < 6 ? "eager" : "lazy"} /> : <div className="product-placeholder">CAST.PRODS</div>}
                 <span className="product-category">{categoryLabels[product.category]}</span>
                 {!isSample && <span className="partner-badge">OFERTA NA SHOPEE</span>}
                 {showAgeGrouping && product.ageGroup !== "geral" && <span className="product-age">{product.ageGroup === "infantil" ? "INFANTIL" : "ADULTO"}</span>}
@@ -246,6 +249,10 @@ export function CatalogView({
                 <p>{showAgeGrouping && product.ageGroup === "infantil" ? `${departmentLabels[product.department]} • INFANTIL` : `${departmentLabels[product.department]} • ${product.audience === "unissex" ? "UNISSEX" : product.audience.toUpperCase()}`}</p>
                 <h2 title={product.title}>{displayTitle}</h2>
                 <span>{getProductPitch(product)}</span>
+                {(product.price || product.sales) && <div className="product-commerce-facts">
+                  {product.price && <strong>{product.price}</strong>}
+                  {product.sales && <small>{product.sales} vendidos</small>}
+                </div>}
                 {!isSample && <div className="product-save-actions">
                   <button
                     aria-pressed={likedIds.has(product.id)}
@@ -254,7 +261,7 @@ export function CatalogView({
                     type="button"
                   >
                     <i aria-hidden="true">{likedIds.has(product.id) ? "♥" : "♡"}</i>
-                    <span>{likedIds.has(product.id) ? "Curtido" : "Curtir"}</span>
+                    <span>{likedIds.has(product.id) ? "1 curtida" : "0 curtidas"}</span>
                   </button>
                   <button
                     aria-pressed={cartIds.has(product.id)}
@@ -269,21 +276,20 @@ export function CatalogView({
                 {isSample ? (
                   <span className="product-link product-link--disabled">Link adicionado pelo administrador</span>
                 ) : (
-                  <a
+                  <Link
                     className="product-link"
-                    href={product.productUrl}
-                    onClick={() => track("produto_aberto", { categoria: product.category, departamento: product.department, produto: displayTitle })}
-                    rel="noopener noreferrer sponsored"
-                    target="_blank"
+                    href={`/produto/${product.id}`}
+                    onClick={() => track("produto_detalhes_aberto", { categoria: product.category, departamento: product.department, produto: displayTitle })}
                   >
-                    Ver preço atualizado <b aria-hidden="true">↗</b>
-                  </a>
+                    Ver produto e comentários <b aria-hidden="true">→</b>
+                  </Link>
                 )}
               </div>
             </article>
           );
         })}
       </div>
+      {visibleCount < filtered.length && <div className="load-more-wrap"><button onClick={() => setVisibleCount((count) => count + 24)} type="button">Mostrar mais produtos <span>{visibleCount} de {filtered.length}</span></button></div>}
       {(!savedOnly || savedLoaded) && filtered.length === 0 && <div className="catalog-empty">{emptyMessage}</div>}
     </>
   );

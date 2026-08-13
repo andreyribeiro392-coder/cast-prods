@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Privacidade", description: "Informa�
 export default function PrivacidadePage() {
   return <InfoPage eyebrow="PRIVACIDADE" title="Respeito aos seus dados." intro="O site foi pensado para funcionar sem cadastro obrigatório e sem solicitar dados de pagamento.">
     <h2>Dados salvos no seu dispositivo</h2>
-    <p>As listas de produtos curtidos e adicionados ao carrinho são guardadas no armazenamento local do seu navegador. Esses dados permanecem no dispositivo e podem ser apagados ao limpar os dados do navegador.</p>
+    <p>As listas de produtos curtidos, itens adicionados ao carrinho e comentários são guardadas no armazenamento local do seu navegador. Esses dados permanecem no dispositivo e podem ser apagados ao limpar os dados do navegador. Evite publicar dados pessoais nos comentários.</p>
     <h2>Medição de uso</h2>
     <p>Utilizamos a ferramenta de análise da Vercel para medir visualizações, desempenho das páginas e cliques de forma agregada. Essas informações ajudam a melhorar o catálogo e a experiência de navegação.</p>
     <h2>Sites de terceiros</h2>
