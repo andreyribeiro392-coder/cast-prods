@@ -1,53 +1,24 @@
-import { desc } from "drizzle-orm";
-import { getDb } from "@/db";
-import { products } from "@/db/schema";
-import seededProducts from "@/data/products.json";
+import { listProducts } from "@/lib/catalog";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   const query = new URL(request.url).searchParams.get("q")?.trim().slice(0, 80) ?? "";
   if (query.length < 2) return Response.json({ products: [] });
 
-  try {
-    const db = await getDb();
-    const normalizedQuery = normalizeSearch(query);
-    const rows = await db
-      .select({
-        id: products.id,
-        title: products.title,
-        department: products.department,
-        category: products.category,
-        productUrl: products.productUrl,
-        imageKey: products.imageKey,
-        imageUrl: products.imageUrl,
-        description: products.description,
-      })
-      .from(products)
-      .orderBy(desc(products.createdAt), desc(products.id));
+  const normalizedQuery = normalizeSearch(query);
+  const catalog = await listProducts();
+  const matches = catalog
+    .filter((product) => normalizeSearch(`${product.title} ${product.description}`).includes(normalizedQuery))
+    .slice(0, 12)
+    .map(({ id, title, department, category, productUrl, imageKey, imageUrl }) => ({
+      id, title, department, category, productUrl, imageKey, imageUrl,
+    }));
 
-    const matches = rows
-      .filter((product) => normalizeSearch(`${product.title} ${product.description}`).includes(normalizedQuery))
-      .slice(0, 12)
-      .map((product) => ({
-        id: product.id,
-        title: product.title,
-        department: product.department,
-        category: product.category,
-        productUrl: product.productUrl,
-        imageKey: product.imageKey,
-        imageUrl: product.imageUrl,
-      }));
-
-    return Response.json({ products: matches });
-  } catch {
-    const normalizedQuery = normalizeSearch(query);
-    const matches = seededProducts
-      .filter((product) => normalizeSearch(`${product.title} ${product.description}`).includes(normalizedQuery))
-      .slice(0, 12)
-      .map(({ id, title, department, category, productUrl, imageKey, imageUrl }) => ({
-        id, title, department, category, productUrl, imageKey, imageUrl,
-      }));
-    return Response.json({ products: matches });
-  }
+  return Response.json(
+    { products: matches },
+    { headers: { "cache-control": "no-store, max-age=0" } },
+  );
 }
 
 function normalizeSearch(value: string) {
