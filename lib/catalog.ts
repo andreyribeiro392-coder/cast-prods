@@ -77,6 +77,10 @@ export type CatalogProduct = {
   imageKey: string | null;
   imageUrl: string | null;
   createdAt: string;
+  price?: string | null;
+  sales?: string | null;
+  storeName?: string | null;
+  marketplace?: string | null;
 };
 
 export const sampleProducts: CatalogProduct[] = [
@@ -199,4 +203,16 @@ export async function getSetting(key: string): Promise<string> {
   } catch {
     return "";
   }
+}
+
+export async function getProductById(id: number): Promise<CatalogProduct | null> {
+  if (!Number.isInteger(id) || id < 1) return null;
+  try {
+    const db = await getDb();
+    const [row] = await db.select().from(products).where(eq(products.id, id)).limit(1);
+    if (row) return row as CatalogProduct;
+  } catch {
+    // The JSON catalog is the production-safe source when no database is linked.
+  }
+  return preservedProducts.find((product) => product.id === id) ?? null;
 }

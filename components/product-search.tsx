@@ -126,10 +126,10 @@ export function ProductSearch() {
               const imageSrc = product.imageKey ? `/api/images/${encodeURIComponent(product.imageKey)}` : product.imageUrl;
               const displayTitle = getProductDisplayTitle(product.title);
               return (
-                <a href={product.productUrl} key={product.id} onClick={() => {
+                <a href={`/produto/${product.id}`} key={product.id} onClick={() => {
                   track("busca_produto_aberto", { categoria: product.category, departamento: product.department, produto: displayTitle });
                   setOpen(false);
-                }} rel="noopener noreferrer sponsored" target="_blank">
+                }}>
                   {imageSrc ? <img alt="" src={imageSrc} /> : <span className="search-result-placeholder">CAST</span>}
                   <span className="search-result-copy">
                     <small>{departmentLabels[product.department] || product.department} • {readableCategory(product.category)}</small>
