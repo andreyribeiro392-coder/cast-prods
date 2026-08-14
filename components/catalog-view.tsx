@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { track } from "@vercel/analytics";
 import Link from "next/link";
 import type { AgeGroup, CatalogProduct, Category, Department } from "@/lib/catalog";
-import { parseCatalogPrice } from "@/lib/price";
+import { parseCatalogPrice, productPriceDisplay } from "@/lib/price";
 import { getProductDisplayTitle, getProductPitch } from "@/lib/product-copy";
 import type { SavedAction } from "@/lib/saved-products";
 
@@ -102,7 +102,7 @@ const categoryOrder = Object.keys(categoryLabels) as Category[];
 type SortMode = "relevance" | "price-asc" | "price-desc" | "sales" | "rating" | "discount" | "popular";
 
 function numericPrice(product: CatalogProduct) {
-  return parseCatalogPrice(product.price);
+  return product.priceCents ? product.priceCents / 100 : parseCatalogPrice(product.price);
 }
 
 function salesScore(product: CatalogProduct) {
@@ -319,6 +319,7 @@ export function CatalogView({
           const imageSrc = product.imageKey ? `/api/images/${encodeURIComponent(product.imageKey)}` : product.imageUrl;
           const isSample = product.productUrl === "#";
           const displayTitle = getProductDisplayTitle(product.title);
+          const price = productPriceDisplay(product.priceCents, product.price);
           return (
             <article className="product-card" key={product.id} style={{ animationDelay: `${index * 80}ms` }}>
               <div className="product-image-wrap">
@@ -332,10 +333,10 @@ export function CatalogView({
                 <p>{showAgeGrouping && product.ageGroup === "infantil" ? `${departmentLabels[product.department]} • INFANTIL` : `${departmentLabels[product.department]} • ${product.audience === "unissex" ? "UNISSEX" : product.audience.toUpperCase()}`}</p>
                 <h2 title={product.title}>{displayTitle}</h2>
                 <span>{getProductPitch(product)}</span>
-                {(product.price || product.sales) && <div className="product-commerce-facts">
-                  {product.price && <strong>{product.price}</strong>}
-                  {product.sales && <small>{product.sales} vendidos</small>}
-                </div>}
+                <div className={price.available ? "product-price-showcase" : "product-price-showcase product-price-showcase--live"}>
+                  <div><small>{price.eyebrow}</small><strong>{price.value}</strong>{product.sales && <span>{product.sales} vendidos</span>}</div>
+                  <i aria-hidden="true">{price.available ? "R$" : "↗"}</i>
+                </div>
                 {(product.rating || product.discountPercent) && <div className="product-market-signals">
                   {product.rating && <span aria-label={`${product.rating} de 5 estrelas`}>★ {product.rating.toFixed(1)}</span>}
                   {product.discountPercent && <b>-{product.discountPercent}%</b>}
