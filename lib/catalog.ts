@@ -196,9 +196,8 @@ async function getRemoteCatalog(): Promise<RemoteCatalog | null> {
     if (!Array.isArray(payload.products)) return null;
 
     const preservedBySourceId = new Map(preservedProducts.filter((item) => item.sourceItemId).map((item) => [item.sourceItemId, item]));
-    const preservedById = new Map(preservedProducts.map((item) => [item.id, item]));
     const enrichedProducts = (payload.products as CatalogProduct[]).map((product) => {
-      const preserved = (product.sourceItemId && preservedBySourceId.get(product.sourceItemId)) || preservedById.get(product.id);
+      const preserved = product.sourceItemId ? preservedBySourceId.get(product.sourceItemId) : undefined;
       return preserved ? {
         ...product,
         price: product.price ?? preserved.price,
