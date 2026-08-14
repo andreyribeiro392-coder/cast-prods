@@ -1,4 +1,4 @@
-import { and, desc, eq, type SQL } from "drizzle-orm";
+import { and, desc, eq, isNotNull, type SQL } from "drizzle-orm";
 import { getDb } from "@/db";
 import { products, settings } from "@/db/schema";
 import seededProducts from "@/data/products.json";
@@ -224,6 +224,7 @@ export async function listProducts(filters: { audience?: Audience; department?: 
   const remoteCatalog = await getRemoteCatalog();
   if (remoteCatalog) {
     return remoteCatalog.products.filter((item) =>
+      Number.isInteger(item.priceCents) &&
       (!filters.audience || item.audience === filters.audience) &&
       (!filters.department || item.department === filters.department) &&
       (!filters.ageGroup || item.ageGroup === filters.ageGroup),
@@ -232,20 +233,19 @@ export async function listProducts(filters: { audience?: Audience; department?: 
 
   try {
     const db = await getDb();
-    const conditions: SQL[] = [];
+    const conditions: SQL[] = [isNotNull(products.priceCents)];
     // Gendered directories must stay strict. Unisex products remain available
     // through search and non-gendered directories instead of appearing in both.
     if (filters.audience) conditions.push(eq(products.audience, filters.audience));
     if (filters.department) conditions.push(eq(products.department, filters.department));
     if (filters.ageGroup) conditions.push(eq(products.ageGroup, filters.ageGroup));
-    const rows = conditions.length
-      ? await db.select().from(products).where(and(...conditions)).orderBy(desc(products.createdAt), desc(products.id))
-      : await db.select().from(products).orderBy(desc(products.createdAt), desc(products.id));
+    const rows = await db.select().from(products).where(and(...conditions)).orderBy(desc(products.createdAt), desc(products.id));
     return rows as CatalogProduct[];
   } catch {
     // The designed sample collection keeps the first visit useful before the first upload.
   }
   return preservedProducts.filter((item) =>
+    Number.isInteger(item.priceCents) &&
     (!filters.audience || item.audience === filters.audience) &&
     (!filters.department || item.department === filters.department) &&
     (!filters.ageGroup || item.ageGroup === filters.ageGroup),
@@ -271,14 +271,14 @@ export async function getSetting(key: string): Promise<string> {
 export async function getProductById(id: number): Promise<CatalogProduct | null> {
   if (!Number.isInteger(id) || id < 1) return null;
   const remoteCatalog = await getRemoteCatalog();
-  if (remoteCatalog) return remoteCatalog.products.find((product) => product.id === id) ?? null;
+  if (remoteCatalog) return remoteCatalog.products.find((product) => product.id === id && Number.isInteger(product.priceCents)) ?? null;
 
   try {
     const db = await getDb();
     const [row] = await db.select().from(products).where(eq(products.id, id)).limit(1);
-    if (row) return row as CatalogProduct;
+    if (row?.priceCents) return row as CatalogProduct;
   } catch {
     // The JSON catalog is the production-safe source when no database is linked.
   }
-  return preservedProducts.find((product) => product.id === id) ?? null;
+  return preservedProducts.find((product) => product.id === id && Number.isInteger(product.priceCents)) ?? null;
 }
