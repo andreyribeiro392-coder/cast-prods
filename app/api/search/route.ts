@@ -11,8 +11,8 @@ export async function GET(request: Request) {
   const matches = catalog
     .filter((product) => normalizeSearch(`${product.title} ${product.description}`).includes(normalizedQuery))
     .slice(0, 12)
-    .map(({ id, title, department, category, productUrl, imageKey, imageUrl }) => ({
-      id, title, department, category, productUrl, imageKey, imageUrl,
+    .map(({ id, title, department, category, productUrl, priceCents, price, imageKey, imageUrl }) => ({
+      id, title, department, category, productUrl, priceCents, price, imageKey, imageUrl,
     }));
 
   return Response.json(
