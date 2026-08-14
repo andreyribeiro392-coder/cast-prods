@@ -165,6 +165,7 @@ export default async function Home() {
         </Link>
         <nav className="header-nav" aria-label="Navegação principal">
           <Link href="#moda">Moda</Link>
+          <Link className="nav-coringa" href="/modo-coringa">Modo Coringa</Link>
           <Link href="#departamentos">Departamentos</Link>
           <Link href="/acessorios">Acessórios</Link>
           <Link href="/academia">Academia</Link>
@@ -189,9 +190,7 @@ export default async function Home() {
             Moda, infantil, acessórios, academia, tecnologia, casa, beleza, ferramentas e muito mais em um
             catálogo organizado para você encontrar tudo sem perder tempo.
           </p>
-          <a className="primary-button" href="#moda">
-            Explorar coleções <span aria-hidden="true">↘</span>
-          </a>
+          <div className="hero-actions"><Link className="primary-button" href="/modo-coringa">Montar por mim <span aria-hidden="true">↘</span></Link><a className="secondary-hero-button" href="#moda">Explorar catálogo</a></div>
         </div>
         <p className="scroll-cue"><span /> Role para descobrir</p>
       </section>
@@ -200,6 +199,11 @@ export default async function Home() {
         <div><b>01</b><span><strong>Escolha seu achado</strong>Use categorias ou pesquisa.</span></div>
         <div><b>02</b><span><strong>Confira a oferta atual</strong>Preço e estoque aparecem na loja.</span></div>
         <div><b>03</b><span><strong>Compre na plataforma</strong>Pagamento e entrega são feitos pela parceira.</span></div>
+      </section>
+
+      <section className="home-coringa">
+        <div className="home-coringa-copy"><p className="eyebrow">NÃO É SÓ PESQUISA</p><h2>Você diz a missão.<br /><em>O Coringa monta.</em></h2><p>Escolha o que precisa, informe seu orçamento e receba três seleções prontas com produtos do catálogo: essencial, equilibrada e completa.</p><Link href="/modo-coringa">Ativar Modo Coringa <span>↗</span></Link></div>
+        <div className="home-coringa-preview"><div><span>01</span><b>SETUP GAMER</b><small>6 categorias analisadas</small></div><div><span>02</span><b>ATÉ R$ 1.500</b><small>Orçamento respeitado</small></div><div><span>03</span><b>3 SELEÇÕES</b><small>Troque qualquer produto</small></div><strong aria-hidden="true">♠</strong></div>
       </section>
 
       <section className="featured-section" id="destaques">

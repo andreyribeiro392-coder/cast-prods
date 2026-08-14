@@ -74,6 +74,7 @@ export type CatalogProduct = {
   category: Category;
   sourceItemId: string | null;
   productUrl: string;
+  priceCents?: number | null;
   imageKey: string | null;
   imageUrl: string | null;
   createdAt: string;
@@ -194,8 +195,23 @@ async function getRemoteCatalog(): Promise<RemoteCatalog | null> {
     const payload = await response.json() as Partial<RemoteCatalog>;
     if (!Array.isArray(payload.products)) return null;
 
+    const preservedBySourceId = new Map(preservedProducts.filter((item) => item.sourceItemId).map((item) => [item.sourceItemId, item]));
+    const preservedById = new Map(preservedProducts.map((item) => [item.id, item]));
+    const enrichedProducts = (payload.products as CatalogProduct[]).map((product) => {
+      const preserved = (product.sourceItemId && preservedBySourceId.get(product.sourceItemId)) || preservedById.get(product.id);
+      return preserved ? {
+        ...product,
+        price: product.price ?? preserved.price,
+        sales: product.sales ?? preserved.sales,
+        storeName: product.storeName ?? preserved.storeName,
+        marketplace: product.marketplace ?? preserved.marketplace,
+        rating: product.rating ?? preserved.rating,
+        discountPercent: product.discountPercent ?? preserved.discountPercent,
+      } : product;
+    });
+
     return {
-      products: payload.products as CatalogProduct[],
+      products: enrichedProducts,
       settings: payload.settings && typeof payload.settings === "object"
         ? payload.settings as Record<string, string>
         : {},
