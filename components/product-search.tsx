@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { track } from "@vercel/analytics";
 import { getProductDisplayTitle } from "@/lib/product-copy";
+import { productPriceDisplay } from "@/lib/price";
 
 type SearchProduct = {
   id: number;
@@ -10,6 +11,8 @@ type SearchProduct = {
   department: string;
   category: string;
   productUrl: string;
+  priceCents?: number | null;
+  price?: string | null;
   imageKey: string | null;
   imageUrl: string | null;
 };
@@ -125,6 +128,7 @@ export function ProductSearch() {
             {results.map((product) => {
               const imageSrc = product.imageKey ? `/api/images/${encodeURIComponent(product.imageKey)}` : product.imageUrl;
               const displayTitle = getProductDisplayTitle(product.title);
+              const price = productPriceDisplay(product.priceCents, product.price);
               return (
                 <a href={`/produto/${product.id}`} key={product.id} onClick={() => {
                   track("busca_produto_aberto", { categoria: product.category, departamento: product.department, produto: displayTitle });
@@ -134,6 +138,7 @@ export function ProductSearch() {
                   <span className="search-result-copy">
                     <small>{departmentLabels[product.department] || product.department} • {readableCategory(product.category)}</small>
                     <strong title={product.title}>{displayTitle}</strong>
+                    <b className={price.available ? "search-result-price" : "search-result-price search-result-price--live"}>{price.value}</b>
                   </span>
                   <b aria-hidden="true">↗</b>
                 </a>
