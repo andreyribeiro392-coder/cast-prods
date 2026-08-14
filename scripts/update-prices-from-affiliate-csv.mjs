@@ -53,9 +53,15 @@ function normalizeTitle(value) {
 }
 
 function priceToCents(value) {
-  const normalized = String(value ?? "").replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", ".");
+  const raw = String(value ?? "").trim().toLowerCase();
+  const usesThousandsSuffix = raw.includes("mil");
+  const normalized = raw.replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", ".");
   const amount = Number(normalized);
-  return Number.isFinite(amount) ? Math.round(amount * 100) : null;
+  return Number.isFinite(amount) ? Math.round(amount * (usesThousandsSuffix ? 100_000 : 100)) : null;
+}
+
+function formatPrice(priceCents) {
+  return (priceCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
 const csvFiles = fs.readdirSync(csvDirectory).filter((file) => file.toLowerCase().endsWith(".csv")).sort();
@@ -100,7 +106,7 @@ for (const product of products) {
   if (!priceCents) continue;
 
   product.priceCents = priceCents;
-  product.price = `R$ ${row.Price}`;
+  product.price = formatPrice(priceCents);
   product.sales = row.Sales || product.sales || null;
   product.storeName = row["Nome da loja"] || product.storeName || null;
   product.marketplace = "Shopee";
