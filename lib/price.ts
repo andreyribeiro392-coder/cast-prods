@@ -9,3 +9,15 @@ export function parseCatalogPrice(price: string | null | undefined) {
   const value = Number(decimal);
   return Number.isFinite(value) ? value * multiplier : null;
 }
+
+export function formatPriceCents(priceCents: number | null | undefined) {
+  if (!priceCents) return null;
+  return (priceCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+export function productPriceDisplay(priceCents: number | null | undefined, price: string | null | undefined) {
+  const formatted = formatPriceCents(priceCents) ?? price?.trim() ?? null;
+  return formatted
+    ? { eyebrow: "PREÇO DO ACHADO", value: formatted, available: true }
+    : { eyebrow: "PREÇO ATUALIZADO", value: "Ver na Shopee", available: false };
+}
