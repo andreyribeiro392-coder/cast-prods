@@ -7,6 +7,7 @@ import { ProductEngagement } from "@/components/product-engagement";
 import { SiteFooter } from "@/components/site-footer";
 import { getProductById } from "@/lib/catalog";
 import { getProductDisplayTitle, getProductPitch } from "@/lib/product-copy";
+import { productPriceDisplay } from "@/lib/price";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   if (!product) notFound();
   const title = getProductDisplayTitle(product.title, 110);
   const imageSrc = product.imageKey ? `/api/images/${encodeURIComponent(product.imageKey)}` : product.imageUrl;
+  const price = productPriceDisplay(product.priceCents, product.price);
   return (
     <main className="product-detail-page">
       <BackButton />
@@ -31,8 +33,8 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           <p className="eyebrow">ACHADO SELECIONADO • {product.storeName || "LOJA PARCEIRA"}</p>
           <h1>{title}</h1>
           <p>{getProductPitch(product)}</p>
+          <div className={price.available ? "detail-price-showcase" : "detail-price-showcase detail-price-showcase--live"}><div><small>{price.eyebrow}</small><strong>{price.value}</strong><span>Confira o valor e o estoque antes de finalizar.</span></div><i aria-hidden="true">{price.available ? "R$" : "↗"}</i></div>
           <div className="detail-facts">
-            {product.price && <div><small>PREÇO INFORMADO</small><strong>{product.price}</strong></div>}
             {product.sales && <div><small>VENDAS INFORMADAS</small><strong>{product.sales}</strong></div>}
             <div><small>COMPRA SEGURA</small><strong>Na loja parceira</strong></div>
           </div>
