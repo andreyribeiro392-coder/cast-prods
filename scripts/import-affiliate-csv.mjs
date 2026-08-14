@@ -45,11 +45,20 @@ function includesAny(value, words) {
   return words.some((word) => value.includes(word));
 }
 
+function priceToCents(value) {
+  if (!value) return null;
+  const normalizedPrice = String(value).replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", ".");
+  const amount = Number(normalizedPrice);
+  return Number.isFinite(amount) ? Math.round(amount * 100) : null;
+}
+
 function classify(title) {
   const value = normalized(title);
   const child = includesAny(value, ["infantil", "crianca", "menino", "menina", "bebe", "baby", "kids", "juvenil", "recem nascid"]);
-  let audience = includesAny(value, ["feminino", "feminina", "mulher", "menina", "lady"]) ? "feminino"
-    : includesAny(value, ["masculino", "masculina", "homem", "menino"]) ? "masculino" : "unissex";
+  const hasFemaleTerms = includesAny(value, ["feminino", "feminina", "mulher", "menina", "lady"]);
+  const hasMaleTerms = includesAny(value, ["masculino", "masculina", "homem", "menino"]);
+  let audience = hasFemaleTerms && !hasMaleTerms ? "feminino"
+    : hasMaleTerms && !hasFemaleTerms ? "masculino" : "unissex";
   let department = "casa";
   let category = "casa_utilidades";
 
@@ -163,6 +172,7 @@ async function worker() {
       imageUrl,
       createdAt: "2026-08-13 01:29:10",
       price: row.Price ? `R$ ${row.Price}` : null,
+      priceCents: priceToCents(row.Price),
       sales: row.Sales || null,
       storeName: row["Nome da loja"] || null,
       marketplace: "Shopee",
@@ -181,9 +191,15 @@ for (const row of rowsById.values()) {
   if (!product || newlyAddedIds.has(row["Item Id"])) continue;
   product.productUrl = row["Offer Link"];
   product.price = row.Price ? `R$ ${row.Price}` : product.price ?? null;
+  product.priceCents = priceToCents(row.Price) ?? product.priceCents ?? null;
   product.sales = row.Sales || product.sales || null;
   product.storeName = row["Nome da loja"] || product.storeName || null;
   product.marketplace = "Shopee";
+  const classification = classify(row["Item Name"]);
+  product.audience = classification.audience;
+  product.ageGroup = classification.ageGroup;
+  product.department = classification.department;
+  product.category = classification.category;
   const rating = Number(row.Rating || row["Rating Star"] || 0) || product.rating || null;
   const discountPercent = Number(String(row.Discount || row["Discount Percent"] || "").replace(/[^\d.]/g, "")) || product.discountPercent || null;
   if (rating) product.rating = rating; else delete product.rating;
