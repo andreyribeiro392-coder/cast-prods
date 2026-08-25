@@ -10,7 +10,7 @@ function prepareCoringaCatalog(products: Awaited<ReturnType<typeof listProducts>
   const selected: typeof products = [];
   const featured = new Set(featuredIds);
   const perCategory = new Map<string, number>();
-  const minimumPrice: Record<string, number> = { computadores: 25000, monitores: 15000, teclados: 2200, perifericos: 1400, audio: 1800, componentes_pc: 3000, moveis: 5000 };
+  const minimumPrice: Record<string, number> = { computadores: 40000, monitores: 15000, teclados: 2200, perifericos: 1400, audio: 1800, componentes_pc: 3000, moveis: 5000 };
 
   for (const product of products) {
     if (!product.priceCents || product.priceCents < (minimumPrice[product.category] ?? 1)) continue;
