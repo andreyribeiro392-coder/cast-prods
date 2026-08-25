@@ -3,15 +3,15 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { CatalogProduct, Category, Department } from "@/lib/catalog";
-import { parseCatalogPrice } from "@/lib/price";
 
 type GoalKey = "setup" | "homeoffice" | "academia" | "infantil" | "cozinha" | "presente";
 type TierKey = "economico" | "equilibrado" | "completo";
+type PriorityKey = "custo-beneficio" | "economia" | "completo" | "visual";
 
 const goals: Record<GoalKey, { icon: string; title: string; description: string; department?: Department; categories: Category[] }> = {
-  setup: { icon: "⌨", title: "Setup gamer", description: "PC, monitor, teclado, áudio e periféricos.", department: "tecnologia", categories: ["computadores", "monitores", "teclados", "audio", "perifericos", "componentes_pc"] },
-  homeoffice: { icon: "▦", title: "Home office", description: "Conforto e produtividade para trabalhar ou estudar.", categories: ["computadores", "monitores", "teclados", "perifericos", "moveis", "organizacao", "audio"] },
-  academia: { icon: "◆", title: "Kit academia", description: "Itens para começar ou melhorar seu treino.", department: "academia", categories: ["equipamentos", "suplementos", "sapatos", "conjuntos", "shorts", "blusas"] },
+  setup: { icon: "⌨", title: "Setup gamer", description: "Teclado, mouse, áudio, monitor e PC de verdade.", department: "tecnologia", categories: ["teclados", "perifericos", "audio", "monitores", "computadores", "componentes_pc"] },
+  homeoffice: { icon: "▦", title: "Home office", description: "Conforto e produtividade para trabalhar ou estudar.", categories: ["teclados", "perifericos", "audio", "moveis", "monitores", "computadores", "organizacao"] },
+  academia: { icon: "◆", title: "Kit academia", description: "Itens para começar ou melhorar seu treino.", categories: ["equipamentos", "suplementos", "sapatos", "conjuntos", "shorts", "blusas"] },
   infantil: { icon: "★", title: "Look infantil", description: "Uma combinação completa para os pequenos.", categories: ["conjuntos", "blusas", "calcas", "sapatos", "casacos", "mochilas", "roupas_bebe"] },
   cozinha: { icon: "◇", title: "Cozinha prática", description: "Achados que economizam tempo na rotina.", department: "casa", categories: ["cozinha", "organizacao", "limpeza", "casa_utilidades"] },
   presente: { icon: "♡", title: "Escolher presente", description: "Sugestões diferentes dentro do seu orçamento.", categories: ["relogios", "bolsas", "colares", "audio", "beleza_cuidados", "brinquedos", "decoracao"] },
@@ -27,59 +27,93 @@ function money(value: number) {
   return (value / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-function productPriceCents(product: CatalogProduct) {
-  if (product.priceCents !== null && product.priceCents !== undefined) return product.priceCents;
-  const parsed = parseCatalogPrice(product.price);
-  return parsed === null ? null : Math.round(parsed * 100);
+function normalizedTitle(product: CatalogProduct) {
+  return product.title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
+function actualPrice(product: CatalogProduct): number | null {
+  return Number.isInteger(product.priceCents) && Number(product.priceCents) > 0 ? Number(product.priceCents) : null;
+}
+
+function isRealProduct(product: CatalogProduct) {
+  const title = normalizedTitle(product);
+  const price = actualPrice(product);
+  if (!price || !product.productUrl.startsWith("http")) return false;
+  const accessory = /\b(adaptador|protetor|pelicula|adesivo|capa|capinha|tampa|suporte|extensor|conector|espuma|almofada|reparo|peca de reposicao|decorativo|enfeite|caveira|limpador|chaveiro)\b/.test(title);
+
+  switch (product.category) {
+    case "computadores": return price >= 25000 && /\b(notebook|computador|desktop|mini pc|pc gamer|laptop)\b/.test(title) && !accessory;
+    case "monitores": return price >= 15000 && /\bmonitor\b/.test(title) && !accessory;
+    case "teclados": return price >= 2200 && /\b(teclado|keyboard)\b/.test(title) && !accessory;
+    case "perifericos": return price >= 1400 && /\b(mouse|webcam|camera|controle|mousepad|mouse pad)\b/.test(title) && !accessory && !/\b(cabo|pendrive|otg)\b/.test(title);
+    case "audio": return price >= 1800 && /\b(fone|headset|microfone|caixa de som|speaker|earbuds)\b/.test(title) && !accessory && !/\b(cabo|espiral)\b/.test(title);
+    case "componentes_pc": return price >= 3000 && /\b(ssd|placa de video|placa mae|memoria ram|processador|gabinete|cooler)\b/.test(title) && !accessory;
+    case "moveis": return price >= 5000 && /\b(cadeira|mesa|escrivaninha|estante|armario|sofa)\b/.test(title) && !accessory;
+    default: return true;
+  }
 }
 
 function eligibleProducts(products: CatalogProduct[], goal: GoalKey) {
   const config = goals[goal];
   return products.filter((product) => {
-    if (product.productUrl === "#") return false;
-    if (goal === "infantil" && product.ageGroup !== "infantil") return false;
+    if (!isRealProduct(product)) return false;
+    if (goal === "infantil" && (product.ageGroup !== "infantil" || !["moda", "acessorios"].includes(product.department))) return false;
     if (config.department && product.department !== config.department) return false;
+    if (goal === "academia" && product.department !== "academia") {
+      if (product.department !== "moda" || product.ageGroup === "infantil") return false;
+      if (!/\b(academia|fitness|treino|corrida|esport|training|gym)\b/.test(normalizedTitle(product))) return false;
+    }
+    if (goal === "homeoffice" && !["tecnologia", "casa"].includes(product.department)) return false;
+    if (goal === "presente" && product.ageGroup === "infantil" && product.category !== "brinquedos") return false;
     return config.categories.includes(product.category);
   });
 }
 
-function buildSelection(products: CatalogProduct[], goal: GoalKey, tier: TierKey, budgetReais: number, featuredIds: number[]) {
+function buildSelection(candidates: CatalogProduct[], goal: GoalKey, tier: TierKey, budgetReais: number, featuredIds: number[], priority: PriorityKey) {
   const config = goals[goal];
   const tierConfig = tiers[tier];
-  const candidates = eligibleProducts(products, goal).sort((a, b) => {
-    const featuredDifference = featuredIds.indexOf(a.id) - featuredIds.indexOf(b.id);
-    const aFeatured = featuredIds.includes(a.id);
-    const bFeatured = featuredIds.includes(b.id);
-    if (aFeatured !== bFeatured) return aFeatured ? -1 : 1;
-    if (aFeatured && bFeatured && featuredDifference !== 0) return featuredDifference;
-    const aPrice = productPriceCents(a);
-    const bPrice = productPriceCents(b);
-    if (aPrice !== null && bPrice !== null) return aPrice - bPrice;
-    return b.id - a.id;
-  });
   const target = Math.round(budgetReais * 100 * tierConfig.budgetShare);
+  const idealPrice = Math.max(Math.round(target / tierConfig.count), 1500);
+  const featured = new Set(featuredIds);
+  const ranked = [...candidates].sort((a, b) => {
+    const aPrice = actualPrice(a)!;
+    const bPrice = actualPrice(b)!;
+    if (priority === "economia") return aPrice - bPrice || b.id - a.id;
+    if (priority === "visual") {
+      const imageDifference = Number(Boolean(b.imageUrl || b.imageKey)) - Number(Boolean(a.imageUrl || a.imageKey));
+      if (imageDifference) return imageDifference;
+    }
+    const featuredDifference = Number(featured.has(b.id)) - Number(featured.has(a.id));
+    if (featuredDifference) return featuredDifference;
+    if (priority === "completo") return aPrice - bPrice || b.id - a.id;
+    return Math.abs(aPrice - idealPrice) - Math.abs(bPrice - idealPrice) || aPrice - bPrice;
+  });
+  const byCategory = new Map<Category, CatalogProduct[]>();
+  for (const item of ranked) {
+    const group = byCategory.get(item.category) ?? [];
+    group.push(item);
+    byCategory.set(item.category, group);
+  }
   const selected: CatalogProduct[] = [];
+  const selectedIds = new Set<number>();
   let pricedTotal = 0;
 
   for (const category of config.categories) {
     if (selected.length >= tierConfig.count) break;
-    const choices = candidates.filter((item) => item.category === category && !selected.some((chosen) => chosen.id === item.id));
-    const fitting = choices.find((item) => {
-      const price = productPriceCents(item);
-      return price === null || pricedTotal + price <= target;
-    });
-    const choice = fitting ?? choices[0];
+    const choices = byCategory.get(category) ?? [];
+    const choice = choices.find((item) => !selectedIds.has(item.id) && pricedTotal + actualPrice(item)! <= target);
     if (!choice) continue;
     selected.push(choice);
-    pricedTotal += productPriceCents(choice) ?? 0;
+    selectedIds.add(choice.id);
+    pricedTotal += actualPrice(choice)!;
   }
-  for (const product of candidates) {
+  for (const product of ranked) {
     if (selected.length >= tierConfig.count) break;
-    if (selected.some((chosen) => chosen.id === product.id)) continue;
-    const price = productPriceCents(product);
-    if (price !== null && pricedTotal + price > target) continue;
+    if (selectedIds.has(product.id)) continue;
+    if (pricedTotal + actualPrice(product)! > target) continue;
     selected.push(product);
-    pricedTotal += price ?? 0;
+    selectedIds.add(product.id);
+    pricedTotal += actualPrice(product)!;
   }
   return selected;
 }
@@ -87,19 +121,26 @@ function buildSelection(products: CatalogProduct[], goal: GoalKey, tier: TierKey
 export function CoringaBuilder({ products, featuredIds }: { products: CatalogProduct[]; featuredIds: number[] }) {
   const [goal, setGoal] = useState<GoalKey>("setup");
   const [budget, setBudget] = useState("1500");
-  const [priority, setPriority] = useState("custo-beneficio");
+  const [priority, setPriority] = useState<PriorityKey>("custo-beneficio");
   const [generated, setGenerated] = useState(false);
   const [selections, setSelections] = useState<Record<TierKey, CatalogProduct[]>>({ economico: [], equilibrado: [], completo: [] });
   const [notice, setNotice] = useState("");
-  const availableCount = useMemo(() => eligibleProducts(products, goal).length, [goal, products]);
+  const compatibleProducts = useMemo(() => eligibleProducts(products, goal), [goal, products]);
+  const availableCount = compatibleProducts.length;
 
   function generate(nextGoal = goal) {
-    const value = Math.max(50, Number(budget) || 1500);
+    const requestedBudget = Number(budget);
+    if (!Number.isFinite(requestedBudget) || requestedBudget < 1) {
+      setNotice("Informe um orçamento válido para montar sua seleção.");
+      return;
+    }
+    const value = Math.max(1, requestedBudget);
+    const candidates = nextGoal === goal ? compatibleProducts : eligibleProducts(products, nextGoal);
     setGoal(nextGoal);
     setSelections({
-      economico: buildSelection(products, nextGoal, "economico", value, featuredIds),
-      equilibrado: buildSelection(products, nextGoal, "equilibrado", value, featuredIds),
-      completo: buildSelection(products, nextGoal, "completo", value, featuredIds),
+      economico: buildSelection(candidates, nextGoal, "economico", value, featuredIds, priority),
+      equilibrado: buildSelection(candidates, nextGoal, "equilibrado", value, featuredIds, priority),
+      completo: buildSelection(candidates, nextGoal, "completo", value, featuredIds, priority),
     });
     setGenerated(true);
     setNotice("");
@@ -114,11 +155,15 @@ export function CoringaBuilder({ products, featuredIds }: { products: CatalogPro
   function swapProduct(tier: TierKey, index: number) {
     const current = selections[tier];
     const item = current[index];
-    const candidates = eligibleProducts(products, goal).filter((product) => product.category === item.category && !current.some((chosen) => chosen.id === product.id));
-    const fallback = eligibleProducts(products, goal).filter((product) => !current.some((chosen) => chosen.id === product.id));
-    const replacement = candidates[0] ?? fallback[0];
+    if (!item) return;
+    const budgetLimit = Math.round(Number(budget) * 100 * tiers[tier].budgetShare);
+    const otherItemsTotal = current.reduce((total, product, itemIndex) => total + (itemIndex === index ? 0 : actualPrice(product) ?? 0), 0);
+    const currentIds = new Set(current.map((product) => product.id));
+    const replacement = compatibleProducts
+      .filter((product) => product.category === item.category && !currentIds.has(product.id) && otherItemsTotal + actualPrice(product)! <= budgetLimit)
+      .sort((a, b) => Math.abs(actualPrice(a)! - actualPrice(item)!) - Math.abs(actualPrice(b)! - actualPrice(item)!))[0];
     if (!replacement) {
-      setNotice("Esse já é o melhor conjunto disponível para essa opção.");
+      setNotice("Não há outro produto compatível dessa categoria dentro do seu orçamento.");
       return;
     }
     setSelections((all) => ({ ...all, [tier]: current.map((product, itemIndex) => itemIndex === index ? replacement : product) }));
@@ -161,8 +206,8 @@ export function CoringaBuilder({ products, featuredIds }: { products: CatalogPro
           ))}
         </div>
         <div className="coringa-controls">
-          <label><span>SEU ORÇAMENTO</span><div className="budget-input"><b>R$</b><input aria-label="Orçamento em reais" inputMode="numeric" min="50" onChange={(event) => setBudget(event.target.value)} type="number" value={budget} /></div></label>
-          <label><span>O QUE IMPORTA MAIS?</span><select onChange={(event) => setPriority(event.target.value)} value={priority}><option value="custo-beneficio">Melhor custo-benefício</option><option value="economia">Economizar ao máximo</option><option value="completo">Ter o kit mais completo</option><option value="visual">Visual e estilo</option></select></label>
+          <label><span>SEU ORÇAMENTO</span><div className="budget-input"><b>R$</b><input aria-label="Orçamento em reais" inputMode="numeric" min="1" onChange={(event) => setBudget(event.target.value)} type="number" value={budget} /></div></label>
+          <label><span>O QUE IMPORTA MAIS?</span><select onChange={(event) => setPriority(event.target.value as PriorityKey)} value={priority}><option value="custo-beneficio">Melhor custo-benefício</option><option value="economia">Economizar ao máximo</option><option value="completo">Ter o kit mais completo</option><option value="visual">Visual e estilo</option></select></label>
           <div className="coringa-control-actions"><button className="coringa-generate" disabled={availableCount === 0} onClick={() => generate()} type="button">Montar por mim <span>↘</span></button><button className="coringa-surprise" onClick={surprise} type="button">✦ Surpreenda-me</button></div>
         </div>
         <p className="availability-note"><b>{availableCount}</b> produtos compatíveis encontrados agora • Prioridade: {priority.replace("-", " ")}</p>
@@ -173,8 +218,7 @@ export function CoringaBuilder({ products, featuredIds }: { products: CatalogPro
         <div className="kit-grid">
           {(Object.keys(tiers) as TierKey[]).map((tier) => {
             const items = selections[tier];
-            const knownTotal = items.reduce((total, item) => total + (productPriceCents(item) ?? 0), 0);
-            const missingPrices = items.filter((item) => productPriceCents(item) === null).length;
+            const knownTotal = items.reduce((total, item) => total + (actualPrice(item) ?? 0), 0);
             return <article className={tier === "equilibrado" ? "kit-card kit-card--featured" : "kit-card"} key={tier}>
               <div className="kit-card-top"><span>{tiers[tier].badge}</span><h3>{tiers[tier].label}</h3><p>{tiers[tier].description}</p></div>
               <div className="kit-products">
@@ -182,13 +226,13 @@ export function CoringaBuilder({ products, featuredIds }: { products: CatalogPro
                   const image = item.imageKey ? `/api/images/${encodeURIComponent(item.imageKey)}` : item.imageUrl;
                   return <div className="kit-product" key={item.id}>
                     {image ? <img alt={item.title} src={image} /> : <div className="kit-product-placeholder">CAST</div>}
-                    <div><small>{item.category.replaceAll("_", " ")}</small><strong>{item.title}</strong><span>{productPriceCents(item) ? money(productPriceCents(item)!) : "Preço na loja"}</span></div>
+                    <div><small>{item.category.replaceAll("_", " ")}</small><strong>{item.title}</strong><span>{money(actualPrice(item)!)}</span></div>
                     <button aria-label={`Trocar ${item.title}`} onClick={() => swapProduct(tier, index)} type="button">↻<span>Trocar</span></button>
                   </div>;
                 })}
                 {items.length === 0 && <p className="kit-empty">Ainda não há produtos suficientes para esta montagem.</p>}
               </div>
-              {items.length > 0 && <><div className="kit-total"><span>{missingPrices ? "Subtotal dos itens com preço" : "Total da seleção"}</span><strong>{knownTotal ? money(knownTotal) : "Confira nas ofertas"}</strong>{missingPrices > 0 && <small>{missingPrices} {missingPrices === 1 ? "item será confirmado" : "itens serão confirmados"} na loja.</small>}</div>
+              {items.length > 0 && <><div className="kit-total"><span>Total da seleção</span><strong>{money(knownTotal)}</strong><small>Dentro do orçamento de {money(Math.round(Number(budget) * 100 * tiers[tier].budgetShare))}.</small></div>
               <div className="kit-actions"><button onClick={() => addToCart(items)} type="button">+ Adicionar ao carrinho</button><button onClick={() => share(items, tier)} type="button">Compartilhar</button></div>
               <div className="kit-buy-links">{items.map((item) => <a href={item.productUrl} key={item.id} rel="noopener noreferrer sponsored" target="_blank">Ver {item.title.slice(0, 34)}{item.title.length > 34 ? "…" : ""} <span>↗</span></a>)}</div></>}
             </article>;
