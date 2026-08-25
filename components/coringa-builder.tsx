@@ -42,7 +42,7 @@ function isRealProduct(product: CatalogProduct) {
   const accessory = /\b(adaptador(?:es)?|protetor(?:es)?|pelicula(?:s)?|adesivo(?:s)?|capa(?:s)?|capinha(?:s)?|tampa(?:s)?|suporte(?:s)?|extensor(?:es)?|conector(?:es)?|espuma(?:s)?|almofada(?:s)?|reparo(?:s)?|peca(?:s)? de reposicao|decorativo(?:s)?|enfeite(?:s)?|caveira(?:s)?|limpador(?:es)?|chaveiro(?:s)?|gaveta(?:s)?|bateria(?:s)?|fonte(?:s)?|carcaca(?:s)?)\b/.test(title);
 
   switch (product.category) {
-    case "computadores": return price >= 40000 && /\b(notebook|computador|desktop|mini pc|pc gamer|laptop)\b/.test(title) && !accessory && !/\b(compativel|para notebook|para laptop|para computador|memoria|mochila|placa|teclado|carregador|tela)\b/.test(title);
+    case "computadores": return price >= 40000 && /\b(notebook|computador|desktop|mini pc|pc gamer|laptop)\b/.test(title) && !accessory && !/\b(compativel|para notebook|para laptop|para computador|memoria|mochila|placa|teclado|carregador|tela|ssd|disco solido|sata|nvme|gabinete|hd externo|hd interno)\b/.test(title);
     case "monitores": return price >= 15000 && /\bmonitor\b/.test(title) && !accessory;
     case "teclados": return price >= 2200 && /\b(teclado|keyboard)\b/.test(title) && !accessory;
     case "perifericos": return price >= 1400 && /\b(mouse|webcam|camera|controle|mousepad|mouse pad)\b/.test(title) && !accessory && !/\b(cabo|pendrive|otg)\b/.test(title);
@@ -102,7 +102,7 @@ function buildSelection(candidates: CatalogProduct[], goal: GoalKey, tier: TierK
     if (selected.length >= tierConfig.count) break;
     const categoryChoices = byCategory.get(category) ?? [];
     const preferredChoices = (goal === "setup" || goal === "homeoffice") && category === "perifericos"
-      ? categoryChoices.filter((item) => /\bmouse\b/.test(normalizedTitle(item)) && !/\bmousepad\b/.test(normalizedTitle(item)))
+      ? categoryChoices.filter((item) => /\bmouse\b/.test(normalizedTitle(item)) && !/\bmouse\s*pad\b/.test(normalizedTitle(item)))
       : goal === "setup" && category === "audio"
         ? categoryChoices.filter((item) => /\b(fone|headset)\b/.test(normalizedTitle(item)))
         : categoryChoices;
