@@ -6,9 +6,6 @@ import { MobileAccountMenu } from "@/components/mobile-account-menu";
 export function AccountNav() {
   return (
     <div className="account-nav" aria-label="Produtos salvos">
-      <Link className="account-link coringa-nav-link" href="/modo-coringa" aria-label="Abrir Modo Coringa">
-        <span aria-hidden="true">♠</span><b>Montar</b>
-      </Link>
       <ProductSearch />
       <Link className="account-link" href="/curtidos" aria-label="Abrir produtos curtidos">
         <span aria-hidden="true">♡</span><b>Curtidos</b>

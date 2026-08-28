@@ -1,16 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Manrope, Space_Grotesk } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const manrope = Manrope({
+  variable: "--font-body",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-display",
   subsets: ["latin"],
 });
 
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://cast-prods.vercel.app"),
   title: { default: "CAST.PRODS | Achados e ofertas", template: "%s | CAST.PRODS" },
   description: "cast.prods — achados de moda, casa, tecnologia, beleza, academia, ferramentas, esporte e muito mais.",
-  other: { "codex-preview": "development", "cast-theme": "joker-v3-professional" },
+  other: { "cast-theme": "midnight-store-v4" },
   icons: {
     icon: [{ url: "/cast-prods-logo.svg", type: "image/svg+xml" }],
     shortcut: "/cast-prods-logo.svg",
@@ -43,7 +43,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html data-theme="dark" lang="pt-BR">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body className={`${manrope.variable} ${spaceGrotesk.variable}`}>
         {children}
         <Analytics />
         <SpeedInsights />

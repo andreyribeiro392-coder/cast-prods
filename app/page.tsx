@@ -180,41 +180,34 @@ export default async function Home() {
     "1000": selectPriceHighlights(products, 1000),
   };
   return (
-    <main>
-      <header className="site-header site-header--overlay">
+    <main className="storefront-v4">
+      <div className="store-announcement"><span>NOVOS ACHADOS TODOS OS DIAS</span><b>•</b><span>PREÇOS DIRETO DAS LOJAS PARCEIRAS</span><b>•</b><span>COMPRA SEGURA NA PLATAFORMA</span></div>
+      <header className="site-header site-header--overlay store-header">
         <Link className="brand" href="/" aria-label="CAST.PRODS - início">
           CAST<span>.PRODS</span>
         </Link>
         <nav className="header-nav" aria-label="Navegação principal">
+          <Link href="#destaques">Destaques</Link>
           <Link href="#moda">Moda</Link>
-          <Link className="nav-coringa" href="/modo-coringa">Modo Coringa</Link>
-          <Link href="#departamentos">Departamentos</Link>
-          <Link href="/acessorios">Acessórios</Link>
-          <Link href="/academia">Academia</Link>
-          <Link href="#social">TikTok</Link>
+          <Link href="#departamentos">Categorias</Link>
+          <Link href="/tecnologia">Tecnologia</Link>
+          <Link href="/casa">Casa</Link>
           <AccountNav />
         </nav>
       </header>
 
-      <section className="hero">
-        <div className="hero-orb hero-orb--one" />
-        <div className="hero-orb hero-orb--two" />
-        <div className="joker-card joker-card--one" aria-hidden="true"><span>♠</span><b>A</b></div>
-        <div className="joker-card joker-card--two" aria-hidden="true"><span>♣</span><b>J</b></div>
-        <div className="joker-card joker-card--three" aria-hidden="true"><span>♦</span><b>K</b></div>
-        <div className="hero-content reveal-up">
-          <p className="eyebrow">ACHADOS PARA VOCÊ • 2026</p>
-          <h1>
-            Seu próximo achado
-            <span>começa aqui.</span>
-          </h1>
-          <p className="hero-copy">
-            Moda, infantil, acessórios, academia, tecnologia, casa, beleza, ferramentas e muito mais em um
-            catálogo organizado para você encontrar tudo sem perder tempo.
-          </p>
-          <div className="hero-actions"><Link className="primary-button" href="/modo-coringa">Montar por mim <span aria-hidden="true">↘</span></Link><a className="secondary-hero-button" href="#moda">Explorar catálogo</a></div>
+      <section className="hero store-hero">
+        <div className="store-hero-copy">
+          <p className="eyebrow">CAST.PRODS • CURADORIA DE OFERTAS</p>
+          <h1>Descubra.<br /><span>Compare.</span><br />Escolha.</h1>
+          <p>Milhares de produtos organizados por estilo, categoria e preço. Encontre mais rápido e finalize a compra diretamente na loja parceira.</p>
+          <div className="hero-actions"><a className="primary-button" href="#destaques">Ver ofertas <span aria-hidden="true">↘</span></a><a className="secondary-hero-button" href="#departamentos">Explorar categorias</a></div>
+          <div className="store-hero-stats"><div><strong>{products.length.toLocaleString("pt-BR")}</strong><span>produtos no catálogo</span></div><div><strong>12+</strong><span>categorias organizadas</span></div><div><strong>24h</strong><span>atualização de preços</span></div></div>
         </div>
-        <p className="scroll-cue"><span /> Role para descobrir</p>
+        <div className="store-hero-visual" aria-label="Destaques Sportlife">
+          <Link href="/sportlife-street" className="hero-editorial hero-editorial--street"><img src="/sportlife-street.png" alt="Look Sportlife streetwear" /><span>01 / STREETWEAR</span><strong>Sportlife<br />Street</strong></Link>
+          <Link href="/sportlife-futebol" className="hero-editorial hero-editorial--football"><img src="/sportlife-futebol.png" alt="Look Sportlife futebol casual" /><span>02 / FUTEBOL</span><strong>Futebol<br />Casual</strong></Link>
+        </div>
       </section>
 
       <section className="trust-strip" aria-label="Como comprar">
@@ -223,18 +216,13 @@ export default async function Home() {
         <div><b>03</b><span><strong>Compre na plataforma</strong>Pagamento e entrega são feitos pela parceira.</span></div>
       </section>
 
-      <section className="home-coringa">
-        <div className="home-coringa-copy"><p className="eyebrow">NÃO É SÓ PESQUISA</p><h2>Você diz a missão.<br /><em>O Coringa monta.</em></h2><p>Escolha o que precisa, informe seu orçamento e receba três seleções prontas com produtos do catálogo: essencial, equilibrada e completa.</p><Link href="/modo-coringa">Ativar Modo Coringa <span>↗</span></Link></div>
-        <div className="home-coringa-preview"><div><span>01</span><b>SETUP GAMER</b><small>6 categorias analisadas</small></div><div><span>02</span><b>ATÉ R$ 1.500</b><small>Orçamento respeitado</small></div><div><span>03</span><b>3 SELEÇÕES</b><small>Troque qualquer produto</small></div><strong aria-hidden="true">♠</strong></div>
-      </section>
-
       <section className="featured-section" id="destaques">
         <div className="section-heading featured-heading">
           <div>
-            <p className="eyebrow eyebrow--dark">SELEÇÃO DA SEMANA</p>
-            <h2>Achados em<br />destaque.</h2>
+            <p className="eyebrow eyebrow--dark">ESCOLHIDOS PARA VOCÊ</p>
+            <h2>Ofertas que<br />valem o clique.</h2>
           </div>
-          <p>Uma seleção de categorias diferentes para você começar. Abra o anúncio para conferir preço, avaliações, estoque e entrega atualizados.</p>
+          <p>Use os filtros rápidos por orçamento e encontre produtos de várias categorias sem perder tempo.</p>
         </div>
         <HomeHighlights groups={highlightGroups} />
         <div className="featured-actions">
