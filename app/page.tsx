@@ -52,6 +52,7 @@ const fashionDirectories = [
     title: "Street esportivo",
     description: "Looks urbanos, largos e esportivos como na sua referência.",
     image: "/sportlife-street.png",
+    position: "center 38%",
     className: "directory-card--dark",
   },
   {
@@ -60,6 +61,7 @@ const fashionDirectories = [
     title: "Futebol casual",
     description: "Camisas, conjuntos e agasalhos no estilo futebol de rua.",
     image: "/sportlife-futebol.png",
+    position: "center 30%",
     className: "directory-card--sports",
   },
   {
@@ -69,6 +71,7 @@ const fashionDirectories = [
     description: "Roupas e calçados masculinos para adultos.",
     image:
       "https://images.unsplash.com/photo-1617137968427-85924c800a22?auto=format&fit=crop&w=1400&q=86",
+    position: "center 24%",
     className: "directory-card--dark",
   },
   {
@@ -78,6 +81,7 @@ const fashionDirectories = [
     description: "Moda feminina adulta para todos os momentos.",
     image:
       "https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=1400&q=86",
+    position: "center 28%",
     className: "directory-card--light",
   },
   {
@@ -86,6 +90,7 @@ const fashionDirectories = [
     title: "Unissex",
     description: "Peças adultas versáteis para todos os estilos.",
     image: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1400&q=86",
+    position: "center 22%",
     className: "directory-card--unisex",
   },
   {
@@ -94,6 +99,7 @@ const fashionDirectories = [
     title: "Infantil",
     description: "Somente roupas e calçados para bebês, meninos e meninas.",
     image: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=crop&w=1200&q=86",
+    position: "center 32%",
     className: "directory-card--kids",
   },
 ];
@@ -248,7 +254,7 @@ export default async function Home() {
         <div className="directory-grid fashion-grid">
           {fashionDirectories.map((directory, index) => (
             <Link className={`directory-card fashion-card ${directory.className}`} href={directory.href} key={directory.href}>
-              <img src={directory.image} alt="" />
+              <img src={directory.image} alt="" style={{ objectPosition: directory.position }} />
               <div className="directory-shade" />
               <span className="fashion-number">{String(index + 1).padStart(2, "0")}</span>
               <div className="directory-content"><p>{directory.eyebrow}</p><h3>{directory.title}</h3><span>{directory.description}</span></div>
