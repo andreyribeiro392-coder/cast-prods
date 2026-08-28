@@ -7,6 +7,7 @@ export type Audience = "masculino" | "feminino" | "unissex";
 export type ProductAudience = Audience;
 export type AgeGroup = "adulto" | "infantil" | "geral";
 export type Department = "moda" | "acessorios" | "academia" | "tecnologia" | "casa" | "beleza" | "ferramentas" | "esporte_lazer";
+export type ProductStyle = "sportlife_street" | "sportlife_futebol";
 export type Category =
   | "sapatos"
   | "calcas"
@@ -72,6 +73,7 @@ export type CatalogProduct = {
   ageGroup: AgeGroup;
   department: Department;
   category: Category;
+  style?: ProductStyle | null;
   sourceItemId: string | null;
   productUrl: string;
   priceCents?: number | null;
@@ -220,14 +222,15 @@ async function getRemoteCatalog(): Promise<RemoteCatalog | null> {
   }
 }
 
-export async function listProducts(filters: { audience?: Audience; department?: Department; ageGroup?: AgeGroup } = {}): Promise<CatalogProduct[]> {
+export async function listProducts(filters: { audience?: Audience; department?: Department; ageGroup?: AgeGroup; style?: ProductStyle } = {}): Promise<CatalogProduct[]> {
   const remoteCatalog = await getRemoteCatalog();
   if (remoteCatalog) {
     return remoteCatalog.products.filter((item) =>
       Number.isInteger(item.priceCents) &&
       (!filters.audience || item.audience === filters.audience) &&
       (!filters.department || item.department === filters.department) &&
-      (!filters.ageGroup || item.ageGroup === filters.ageGroup),
+      (!filters.ageGroup || item.ageGroup === filters.ageGroup) &&
+      (!filters.style || item.style === filters.style),
     );
   }
 
@@ -239,6 +242,7 @@ export async function listProducts(filters: { audience?: Audience; department?: 
     if (filters.audience) conditions.push(eq(products.audience, filters.audience));
     if (filters.department) conditions.push(eq(products.department, filters.department));
     if (filters.ageGroup) conditions.push(eq(products.ageGroup, filters.ageGroup));
+    if (filters.style) conditions.push(eq(products.style, filters.style));
     const rows = await db.select().from(products).where(and(...conditions)).orderBy(desc(products.createdAt), desc(products.id));
     return rows as CatalogProduct[];
   } catch {
@@ -248,7 +252,8 @@ export async function listProducts(filters: { audience?: Audience; department?: 
     Number.isInteger(item.priceCents) &&
     (!filters.audience || item.audience === filters.audience) &&
     (!filters.department || item.department === filters.department) &&
-    (!filters.ageGroup || item.ageGroup === filters.ageGroup),
+    (!filters.ageGroup || item.ageGroup === filters.ageGroup) &&
+    (!filters.style || item.style === filters.style),
   );
 }
 

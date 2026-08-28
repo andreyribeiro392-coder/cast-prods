@@ -47,6 +47,22 @@ export const dynamic = "force-dynamic";
 
 const fashionDirectories = [
   {
+    href: "/sportlife-street",
+    eyebrow: "SPORTLIFE • STREETWEAR",
+    title: "Street esportivo",
+    description: "Looks urbanos, largos e esportivos como na sua referência.",
+    image: "/sportlife-street.png",
+    className: "directory-card--dark",
+  },
+  {
+    href: "/sportlife-futebol",
+    eyebrow: "SPORTLIFE • FUTEBOL",
+    title: "Futebol casual",
+    description: "Camisas, conjuntos e agasalhos no estilo futebol de rua.",
+    image: "/sportlife-futebol.png",
+    className: "directory-card--sports",
+  },
+  {
     href: "/masculino",
     eyebrow: "MODA MASCULINA",
     title: "Masculino",
@@ -234,7 +250,7 @@ export default async function Home() {
             <Link className={`directory-card fashion-card ${directory.className}`} href={directory.href} key={directory.href}>
               <img src={directory.image} alt="" />
               <div className="directory-shade" />
-              <span className="fashion-number">0{index + 1}</span>
+              <span className="fashion-number">{String(index + 1).padStart(2, "0")}</span>
               <div className="directory-content"><p>{directory.eyebrow}</p><h3>{directory.title}</h3><span>{directory.description}</span></div>
               <div className="circle-arrow" aria-hidden="true">↗</div>
             </Link>

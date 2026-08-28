@@ -830,6 +830,8 @@ body,
 
 .catalog-page--ferramentas { --catalog-accent: #d8ff4f; }
 .catalog-page--esporte_lazer { --catalog-accent: #78c8ff; }
+.catalog-page--sportlife_street { --catalog-accent: #9cff45; }
+.catalog-page--sportlife_futebol { --catalog-accent: #d9ff4a; }
 .catalog-page--ferramentas .catalog-hero {
   background-image: linear-gradient(95deg, rgba(0,0,0,.82), rgba(0,0,0,.28)), url("https://images.unsplash.com/photo-1581147036324-c1c89c2c8b5c?auto=format&fit=crop&w=1900&q=86");
 }

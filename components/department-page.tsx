@@ -5,7 +5,7 @@ import { CatalogView } from "@/components/catalog-view";
 import { SiteFooter } from "@/components/site-footer";
 import type { CatalogProduct, Department } from "@/lib/catalog";
 
-type DirectoryPageKey = Department | "infantil";
+type DirectoryPageKey = Department | "infantil" | "sportlife_street" | "sportlife_futebol";
 
 const content: Record<DirectoryPageKey, { eyebrow: string; title: string; description: string; heading: string; empty: string }> = {
   moda: { eyebrow: "DEPARTAMENTO MODA", title: "Estilo para todos os momentos.", description: "Roupas, calçados e combinações para adultos e crianças.", heading: "Escolha seu próximo look.", empty: "As novidades de moda serão publicadas aqui." },
@@ -17,6 +17,8 @@ const content: Record<DirectoryPageKey, { eyebrow: string; title: string; descri
   ferramentas: { eyebrow: "FERRAMENTAS E AUTO", title: "Praticidade para fazer acontecer.", description: "Ferramentas, equipamentos e acessórios automotivos organizados em um só lugar.", heading: "Ferramentas e automotivo.", empty: "Os primeiros produtos de ferramentas chegarão em breve." },
   esporte_lazer: { eyebrow: "ESPORTE E LAZER", title: "Mais movimento para sua rotina.", description: "Bicicletas, mobilidade, pesca e achados para aproveitar seu tempo livre.", heading: "Esporte, mobilidade e lazer.", empty: "Os primeiros produtos de esporte e lazer chegarão em breve." },
   infantil: { eyebrow: "MODA INFANTIL", title: "Estilo para os pequenos.", description: "Somente roupas e calçados para bebês, meninos e meninas.", heading: "Moda infantil bem organizada.", empty: "As próximas roupas infantis chegarão em breve." },
+  sportlife_street: { eyebrow: "SPORTLIFE • STREETWEAR", title: "Esportivo com atitude urbana.", description: "Calças largas, conjuntos, moletons e corta-ventos no estilo da referência.", heading: "Streetwear esportivo selecionado.", empty: "A seleção da Shopee está sendo preparada." },
+  sportlife_futebol: { eyebrow: "SPORTLIFE • FUTEBOL CASUAL", title: "O futebol também veste a rua.", description: "Camisas de times e seleções, agasalhos e conjuntos para um visual esportivo casual.", heading: "Futebol casual selecionado.", empty: "A seleção da Shopee está sendo preparada." },
 };
 
 export async function DepartmentPage({ directory, products, tiktokUrl }: { directory: DirectoryPageKey; products: CatalogProduct[]; tiktokUrl: string }) {
