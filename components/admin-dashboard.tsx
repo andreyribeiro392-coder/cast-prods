@@ -75,6 +75,11 @@ export function AdminDashboard() {
       : { type: "error", message: data.error ?? "Não foi possível salvar." });
   }
 
+  const duplicateCount = products.length - new Set(products.map((item) => item.sourceItemId || item.productUrl)).size;
+  const missingImageCount = products.filter((item) => !item.imageKey && !item.imageUrl).length;
+  const missingPriceCount = products.filter((item) => !item.priceCents && !item.price).length;
+  const invalidLinkCount = products.filter((item) => !item.productUrl.startsWith("https://")).length;
+
   return (
     <div className="admin-shell">
       <section className="admin-intro">
@@ -84,6 +89,8 @@ export function AdminDashboard() {
       </section>
 
       {status.type !== "idle" && <div aria-live="polite" className={`admin-status admin-status--${status.type}`}>{status.message}</div>}
+
+      <section className="admin-health-grid" aria-label="Saúde do catálogo"><article><small>PRODUTOS</small><strong>{products.length}</strong><span>Total cadastrado</span></article><article><small>DUPLICADOS</small><strong>{duplicateCount}</strong><span>Identificados por código ou link</span></article><article><small>SEM IMAGEM</small><strong>{missingImageCount}</strong><span>Precisam de correção</span></article><article><small>SEM PREÇO</small><strong>{missingPriceCount}</strong><span>Ocultos do público</span></article><article><small>LINK INVÁLIDO</small><strong>{invalidLinkCount}</strong><span>Formato incorreto</span></article></section>
 
       <div className="admin-grid">
         <section className="admin-card admin-card--form">

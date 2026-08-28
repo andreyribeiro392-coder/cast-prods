@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Manrope, Space_Grotesk } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import Link from "next/link";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -45,6 +46,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html data-theme="dark" lang="pt-BR">
       <body className={`${manrope.variable} ${spaceGrotesk.variable}`}>
         {children}
+        <nav className="mobile-bottom-nav" aria-label="Navegação rápida no celular"><Link href="/"><span>⌂</span><b>Início</b></Link><Link href="/categorias"><span>▦</span><b>Categorias</b></Link><Link href="/curtidos"><span>♡</span><b>Curtidos</b></Link><Link href="/carrinho"><span>▱</span><b>Carrinho</b></Link></nav>
         <Analytics />
         <SpeedInsights />
       </body>

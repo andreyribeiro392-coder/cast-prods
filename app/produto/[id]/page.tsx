@@ -5,7 +5,8 @@ import { AccountNav } from "@/components/account-nav";
 import { BackButton } from "@/components/back-button";
 import { ProductEngagement } from "@/components/product-engagement";
 import { SiteFooter } from "@/components/site-footer";
-import { getProductById } from "@/lib/catalog";
+import { getProductById, listProducts } from "@/lib/catalog";
+import { CatalogView } from "@/components/catalog-view";
 import { getProductDisplayTitle, getProductPitch } from "@/lib/product-copy";
 import { productPriceDisplay } from "@/lib/price";
 
@@ -23,6 +24,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   const title = getProductDisplayTitle(product.title, 110);
   const imageSrc = product.imageKey ? `/api/images/${encodeURIComponent(product.imageKey)}` : product.imageUrl;
   const price = productPriceDisplay(product.priceCents, product.price);
+  const related = (await listProducts()).filter((item) => item.id !== product.id && item.category === product.category).slice(0, 8);
   return (
     <main className="product-detail-page">
       <BackButton />
@@ -42,7 +44,8 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           <p className="detail-disclaimer">Preço, estoque, avaliações, entrega e pagamento são definidos pela loja parceira e podem mudar. A CAST.PRODS pode receber comissão pela indicação, sem custo adicional para você.</p>
         </div>
       </section>
-      <ProductEngagement productId={product.id} />
+      <ProductEngagement productId={product.id} title={title} price={price.value} imageUrl={imageSrc} />
+      {related.length > 0 && <section className="related-products"><p className="eyebrow">PRODUTOS SEMELHANTES</p><h2>Você também pode gostar.</h2><CatalogView products={related} simple /></section>}
       <SiteFooter />
     </main>
   );

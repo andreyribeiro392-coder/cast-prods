@@ -145,6 +145,7 @@ export function CatalogView({
   const [minimumPrice, setMinimumPrice] = useState("");
   const [maximumPrice, setMaximumPrice] = useState("");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [compareIds, setCompareIds] = useState<number[]>([]);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -232,9 +233,16 @@ export function CatalogView({
     }
   }
 
+  function toggleCompare(productId: number) {
+    setCompareIds((current) => current.includes(productId) ? current.filter((id) => id !== productId) : current.length < 3 ? [...current, productId] : current);
+  }
+
+  const compared = products.filter((product) => compareIds.includes(product.id));
+
   return (
     <>
       <p className="save-notice" aria-live="polite">{notice}</p>
+      {compared.length > 0 && <div className="compare-dock"><div><small>COMPARAÇÃO</small><strong>{compared.length} de 3 produtos</strong></div><div>{compared.map((product) => <span key={product.id}>{getProductDisplayTitle(product.title, 32)}<button aria-label="Retirar da comparação" onClick={() => toggleCompare(product.id)} type="button">×</button></span>)}</div>{compared.length > 1 && <details><summary>Comparar agora</summary><div className="compare-table">{compared.map((product) => { const value = productPriceDisplay(product.priceCents, product.price); return <article key={product.id}><b>{getProductDisplayTitle(product.title, 48)}</b><strong>{value.value}</strong><span>{product.rating ? `★ ${product.rating.toFixed(1)}` : "Sem avaliação informada"}</span><span>{product.sales ? `${product.sales} vendidos` : "Vendas não informadas"}</span><Link href={`/produto/${product.id}`}>Ver produto ↗</Link></article>; })}</div></details>}</div>}
       {!simple && showAgeGrouping && availableAgeGroups.length > 1 && products.length > 0 && <div className="age-directory-grid" role="group" aria-label="Escolher faixa etária">
         {availableAgeGroups.map((item) => {
           const count = products.filter((product) => product.ageGroup === item).length;
@@ -360,6 +368,7 @@ export function CatalogView({
                     <i aria-hidden="true">{cartIds.has(product.id) ? "✓" : "+"}</i>
                     <span>{cartIds.has(product.id) ? "No carrinho" : "Carrinho"}</span>
                   </button>
+                  <button aria-pressed={compareIds.includes(product.id)} className={compareIds.includes(product.id) ? "save-button save-button--active" : "save-button"} onClick={() => toggleCompare(product.id)} type="button"><i aria-hidden="true">⇄</i><span>{compareIds.includes(product.id) ? "Comparando" : "Comparar"}</span></button>
                 </div>}
                 {isSample ? (
                   <span className="product-link product-link--disabled">Link adicionado pelo administrador</span>

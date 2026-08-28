@@ -187,9 +187,9 @@ export default async function Home() {
           CAST<span>.PRODS</span>
         </Link>
         <nav className="header-nav" aria-label="Navegação principal">
-          <Link href="#destaques">Destaques</Link>
+          <Link href="/colecoes/promocoes">Promoções</Link>
           <Link href="#moda">Moda</Link>
-          <Link href="#departamentos">Categorias</Link>
+          <Link href="/categorias">Categorias</Link>
           <Link href="/tecnologia">Tecnologia</Link>
           <Link href="/casa">Casa</Link>
           <AccountNav />
@@ -215,6 +215,8 @@ export default async function Home() {
         <div><b>02</b><span><strong>Confira a oferta atual</strong>Preço e estoque aparecem na loja.</span></div>
         <div><b>03</b><span><strong>Compre na plataforma</strong>Pagamento e entrega são feitos pela parceira.</span></div>
       </section>
+
+      <nav className="collection-shortcuts" aria-label="Coleções rápidas"><Link href="/colecoes/promocoes"><span>01</span><b>Promoções</b><i>↗</i></Link><Link href="/colecoes/novidades"><span>02</span><b>Novidades</b><i>↗</i></Link><Link href="/colecoes/vendidos"><span>03</span><b>Mais vendidos</b><i>↗</i></Link><Link href="/colecoes/avaliados"><span>04</span><b>Melhores avaliações</b><i>↗</i></Link><Link href="/categorias"><span>05</span><b>Todas as categorias</b><i>↗</i></Link></nav>
 
       <section className="featured-section" id="destaques">
         <div className="section-heading featured-heading">

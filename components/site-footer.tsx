@@ -8,6 +8,9 @@ export function SiteFooter() {
         <p>Achados para todos os momentos.</p>
       </div>
       <nav aria-label="Informações e transparência" className="footer-links">
+        <Link href="/categorias">Todas as categorias</Link>
+        <Link href="/colecoes/promocoes">Promoções</Link>
+        <Link href="/colecoes/novidades">Novidades</Link>
         <Link href="/sobre">Sobre</Link>
         <Link href="/contato">Contato</Link>
         <Link href="/privacidade">Privacidade</Link>
