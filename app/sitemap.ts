@@ -30,7 +30,7 @@ const routes = [
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const products = await listProducts();
-  return [...routes.map((route) => ({
+  return [...routes.map((route): MetadataRoute.Sitemap[number] => ({
     url: `https://cast-prods.vercel.app${route}`,
     changeFrequency: route === "" ? "daily" : "weekly",
     priority: route === "" ? 1 : route.startsWith("/sobre") || route.startsWith("/contato") || route.startsWith("/privacidade") || route.startsWith("/termos") ? 0.4 : 0.8,
