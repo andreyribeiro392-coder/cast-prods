@@ -47,6 +47,24 @@ export const dynamic = "force-dynamic";
 
 const fashionDirectories = [
   {
+    href: "/categorias",
+    eyebrow: "MODA • ESTILO URBANO",
+    title: "Streetwear",
+    description: "Peças urbanas e confortáveis para montar seu estilo.",
+    image: "/sportlife-street.png",
+    position: "center 38%",
+    className: "directory-card--dark",
+  },
+  {
+    href: "/categorias",
+    eyebrow: "MODA • DIA A DIA",
+    title: "Looks casuais",
+    description: "Roupas versáteis para diferentes momentos da rotina.",
+    image: "/sportlife-futebol.png",
+    position: "center 30%",
+    className: "directory-card--sports",
+  },
+  {
     href: "/masculino",
     eyebrow: "MODA MASCULINA",
     title: "Masculino",
