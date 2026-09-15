@@ -47,24 +47,6 @@ export const dynamic = "force-dynamic";
 
 const fashionDirectories = [
   {
-    href: "/sportlife-street",
-    eyebrow: "SPORTLIFE • STREETWEAR",
-    title: "Street esportivo",
-    description: "Looks urbanos, largos e esportivos como na sua referência.",
-    image: "/sportlife-street.png",
-    position: "center 38%",
-    className: "directory-card--dark",
-  },
-  {
-    href: "/sportlife-futebol",
-    eyebrow: "SPORTLIFE • FUTEBOL",
-    title: "Futebol casual",
-    description: "Camisas, conjuntos e agasalhos no estilo futebol de rua.",
-    image: "/sportlife-futebol.png",
-    position: "center 30%",
-    className: "directory-card--sports",
-  },
-  {
     href: "/masculino",
     eyebrow: "MODA MASCULINA",
     title: "Masculino",
