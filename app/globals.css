@@ -592,7 +592,7 @@ h1, h2, h3, .brand, .search-panel-top strong, .product-info h2 { font-family: va
 .storefront-v4 .home-price-chip--active { background: var(--v4-accent); border-color: var(--v4-accent); color: #090b0e; }
 
 .storefront-v4 .fashion-grid { gap: 16px; grid-template-columns: repeat(12,minmax(0,1fr)); }
-.storefront-v4 .fashion-card:nth-child(n) { grid-column: span 6; min-height: 480px; }
+.storefront-v4 .fashion-card:nth-child(n) { grid-column: span 4; min-height: 480px; }
 .storefront-v4 .departments-grid { gap: 14px; grid-template-columns: repeat(4,minmax(0,1fr)); }
 .storefront-v4 .departments-grid .directory-card { min-height: 360px; }
 .storefront-v4 .directory-card { background: var(--v4-card); border: 1px solid var(--v4-line); border-radius: 20px; box-shadow: none; }
