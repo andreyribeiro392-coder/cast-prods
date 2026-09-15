@@ -204,10 +204,7 @@ export default async function Home() {
           <div className="hero-actions"><a className="primary-button" href="#destaques">Ver ofertas <span aria-hidden="true">↘</span></a><a className="secondary-hero-button" href="#departamentos">Explorar categorias</a></div>
           <div className="store-hero-stats"><div><strong>{products.length.toLocaleString("pt-BR")}</strong><span>produtos no catálogo</span></div><div><strong>12+</strong><span>categorias organizadas</span></div><div><strong>24h</strong><span>atualização de preços</span></div></div>
         </div>
-        <div className="store-hero-visual" aria-label="Destaques Sportlife">
-          <Link href="/sportlife-street" className="hero-editorial hero-editorial--street"><img src="/sportlife-street.png" alt="Look Sportlife streetwear" /><span>01 / STREETWEAR</span><strong>Sportlife<br />Street</strong></Link>
-          <Link href="/sportlife-futebol" className="hero-editorial hero-editorial--football"><img src="/sportlife-futebol.png" alt="Look Sportlife futebol casual" /><span>02 / FUTEBOL</span><strong>Futebol<br />Casual</strong></Link>
-        </div>
+        <div className="store-hero-visual" aria-hidden="true" />
       </section>
 
       <section className="trust-strip" aria-label="Como comprar">
