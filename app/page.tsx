@@ -173,9 +173,15 @@ export default async function Home() {
   const featuredIds = parseFeaturedIds(featuredIdsValue);
   const featuredProducts = selectFeaturedProducts(products, featuredIds);
   // Keep the catalog highlights intact; replace only the shorts in the hero showcase.
-  const heroIds = featuredIds.map((id) => id === 827 ? 1078 : id);
-  const heroProducts = selectFeaturedProducts(products, [...new Set(heroIds)])
-    .filter((product) => product.imageKey || product.imageUrl).slice(0, 3);
+  const heroSelection = featuredProducts.filter((product) => product.imageKey || product.imageUrl).slice(0, 3);
+  const heroElectronic = products.find((product) =>
+    product.category === "audio" && /^fones?\b/i.test(product.title) && /bluetooth/i.test(product.title) &&
+    (product.imageKey || product.imageUrl) &&
+    !heroSelection.some((featured) => featured.id === product.id)
+  );
+  const heroProducts = heroSelection.map((product) =>
+    product.category === "shorts" && heroElectronic ? heroElectronic : product
+  );
   const highlightGroups = {
     featured: featuredProducts,
     "10": selectPriceHighlights(products, 10),
