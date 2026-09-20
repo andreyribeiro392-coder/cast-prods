@@ -331,6 +331,7 @@ export function CatalogView({
           return (
             <article className="product-card" key={product.id} style={{ animationDelay: `${index * 80}ms` }}>
               <div className="product-image-wrap">
+                {!isSample && <Link className="product-image-link" href={`/produto/${product.id}`} aria-label={`Ver ${displayTitle}`} />}
                 {imageSrc ? <img src={imageSrc} alt={displayTitle} loading={index < 6 ? "eager" : "lazy"} /> : <div className="product-placeholder">CAST.PRODS</div>}
                 <span className="product-category">{categoryLabels[product.category]}</span>
                 {!isSample && <span className="partner-badge">OFERTA NA SHOPEE</span>}
@@ -357,7 +358,7 @@ export function CatalogView({
                     type="button"
                   >
                     <i aria-hidden="true">{likedIds.has(product.id) ? "♥" : "♡"}</i>
-                    <span>{likedIds.has(product.id) ? "1 curtida" : "0 curtidas"}</span>
+                    <span>{likedIds.has(product.id) ? "Curtido" : "Curtir"}</span>
                   </button>
                   <button
                     aria-pressed={cartIds.has(product.id)}

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 const storefrontThemeMeta =
-  /<meta(?=[^>]*\bname=["']cast-theme["'])(?=[^>]*\bcontent=["']midnight-store-v4["'])[^>]*>/i;
+  /<meta(?=[^>]*\bname=["']cast-theme["'])(?=[^>]*\bcontent=["']atelier-blue-v5["'])[^>]*>/i;
 
 test("renders the current storefront theme metadata", async () => {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);

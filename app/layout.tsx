@@ -2,8 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Manrope, Space_Grotesk } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import Link from "next/link";
+import { MobileDock } from "@/components/mobile-dock";
 import "./globals.css";
+import "./atelier.css";
 
 const manrope = Manrope({
   variable: "--font-body",
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://cast-prods.vercel.app"),
   title: { default: "CAST.PRODS | Achados e ofertas", template: "%s | CAST.PRODS" },
   description: "cast.prods — achados de moda, casa, tecnologia, beleza, academia, ferramentas, esporte e muito mais.",
-  other: { "cast-theme": "midnight-store-v4" },
+  other: { "cast-theme": "atelier-blue-v5" },
   icons: {
     icon: [{ url: "/cast-prods-logo.svg", type: "image/svg+xml" }],
     shortcut: "/cast-prods-logo.svg",
@@ -38,7 +39,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   colorScheme: "dark",
-  themeColor: "#070609",
+  themeColor: "#0c0d0f",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -46,7 +47,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html data-theme="dark" lang="pt-BR">
       <body className={`${manrope.variable} ${spaceGrotesk.variable}`}>
         {children}
-        <nav className="mobile-bottom-nav" aria-label="Navegação rápida no celular"><Link href="/"><span>⌂</span><b>Início</b></Link><Link href="/categorias"><span>▦</span><b>Categorias</b></Link><Link href="/curtidos"><span>♡</span><b>Curtidos</b></Link><Link href="/carrinho"><span>▱</span><b>Carrinho</b></Link></nav>
+        <MobileDock />
         <Analytics />
         <SpeedInsights />
       </body>

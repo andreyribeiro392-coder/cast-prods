@@ -3,7 +3,8 @@ import { AccountNav } from "@/components/account-nav";
 import { HomeHighlights } from "@/components/home-highlights";
 import { SiteFooter } from "@/components/site-footer";
 import { getSetting, listProducts, type CatalogProduct } from "@/lib/catalog";
-import { parseCatalogPrice } from "@/lib/price";
+import { parseCatalogPrice, productPriceDisplay } from "@/lib/price";
+import { getProductDisplayTitle } from "@/lib/product-copy";
 
 const DEFAULT_FEATURED_IDS = [433, 827, 619, 828, 826, 815, 830, 825];
 
@@ -171,6 +172,7 @@ export default async function Home() {
   ]);
   const featuredIds = parseFeaturedIds(featuredIdsValue);
   const featuredProducts = selectFeaturedProducts(products, featuredIds);
+  const heroProducts = featuredProducts.filter((product) => product.imageKey || product.imageUrl).slice(0, 3);
   const highlightGroups = {
     featured: featuredProducts,
     "10": selectPriceHighlights(products, 10),
@@ -181,7 +183,7 @@ export default async function Home() {
   };
   return (
     <main className="storefront-v4">
-      <div className="store-announcement"><span>NOVOS ACHADOS TODOS OS DIAS</span><b>•</b><span>PREÇOS DIRETO DAS LOJAS PARCEIRAS</span><b>•</b><span>COMPRA SEGURA NA PLATAFORMA</span></div>
+      <div className="store-announcement"><span>CURADORIA CAST.PRODS</span><b aria-hidden="true">/</b><span>ESCOLHAS PARA O SEU DIA A DIA</span><b aria-hidden="true">/</b><span>COMPRA DIRETO NA LOJA PARCEIRA</span></div>
       <header className="site-header site-header--overlay store-header">
         <Link className="brand" href="/" aria-label="CAST.PRODS - início">
           CAST<span>.PRODS</span>
@@ -198,13 +200,26 @@ export default async function Home() {
 
       <section className="hero store-hero">
         <div className="store-hero-copy">
-          <p className="eyebrow">CAST.PRODS • CURADORIA DE OFERTAS</p>
-          <h1>Descubra.<br /><span>Compare.</span><br />Escolha.</h1>
-          <p>Milhares de produtos organizados por estilo, categoria e preço. Encontre mais rápido e finalize a compra diretamente na loja parceira.</p>
-          <div className="hero-actions"><a className="primary-button" href="#destaques">Ver ofertas <span aria-hidden="true">↘</span></a><a className="secondary-hero-button" href="#departamentos">Explorar categorias</a></div>
-          <div className="store-hero-stats"><div><strong>{products.length.toLocaleString("pt-BR")}</strong><span>produtos no catálogo</span></div><div><strong>12+</strong><span>categorias organizadas</span></div><div><strong>24h</strong><span>atualização de preços</span></div></div>
+          <p className="eyebrow">ESCOLHA MENOS ÓBVIO.</p>
+          <h1>Seu próximo<br /><span>bom achado.</span></h1>
+          <p>Do seu estilo ao seu espaço. Explore a seleção, compare os detalhes e encontre o que combina com você.</p>
+          <div className="hero-actions"><a className="primary-button" href="#destaques">Explorar achados <span aria-hidden="true">↗</span></a><a className="secondary-hero-button" href="#departamentos">Ver departamentos</a></div>
+          <div className="store-hero-stats"><div><strong>{products.length.toLocaleString("pt-BR")}</strong><span>produtos para descobrir</span></div><div><strong>Seu ritmo.</strong><span>Salve. Compare. Escolha.</span></div></div>
         </div>
-        <div className="store-hero-visual" aria-hidden="true" />
+        {heroProducts.length > 0 && <div className="editorial-shelf" aria-label="Uma prévia da seleção">
+          <div className="shelf-heading"><span>NA NOSSA SELEÇÃO</span><span>01 — {String(heroProducts.length).padStart(2, "0")}</span></div>
+          <div className="shelf-products">
+            {heroProducts.map((product, index) => {
+              const title = getProductDisplayTitle(product.title, 60);
+              const price = productPriceDisplay(product.priceCents, product.price);
+              return <Link className={`shelf-product shelf-product--${index + 1}`} href={`/produto/${product.id}`} key={product.id}>
+                <div className="shelf-image"><img src={product.imageKey ? `/api/images/${encodeURIComponent(product.imageKey)}` : product.imageUrl!} alt={title} loading={index === 0 ? "eager" : "lazy"} /><span className="shelf-index" aria-hidden="true">0{index + 1}</span></div>
+                <div className="shelf-caption"><div><span>{title}</span><strong>{price.value}</strong></div><b aria-hidden="true">↗</b></div>
+              </Link>;
+            })}
+          </div>
+          <p className="shelf-footnote">Um novo olhar para as suas próximas escolhas.</p>
+        </div>}
       </section>
 
       <section className="trust-strip" aria-label="Como comprar">
@@ -218,8 +233,8 @@ export default async function Home() {
       <section className="featured-section" id="destaques">
         <div className="section-heading featured-heading">
           <div>
-            <p className="eyebrow eyebrow--dark">ESCOLHIDOS PARA VOCÊ</p>
-            <h2>Ofertas que<br />valem o clique.</h2>
+            <p className="eyebrow eyebrow--dark">01 / A SELEÇÃO</p>
+            <h2>Vale descobrir.</h2>
           </div>
           <p>Use os filtros rápidos por orçamento e encontre produtos de várias categorias sem perder tempo.</p>
         </div>
@@ -232,7 +247,7 @@ export default async function Home() {
       <section className="directory-section fashion-section" id="moda">
         <div className="section-heading">
           <div>
-            <p className="eyebrow eyebrow--dark">MODA POR ESTILO E IDADE</p>
+            <p className="eyebrow eyebrow--dark">02 / SEU ESTILO</p>
             <h2>Moda para todos<br />os estilos.</h2>
           </div>
           <p>Masculino, feminino e unissex reúnem somente moda adulta. Infantil reúne somente roupas e calçados para crianças.</p>
@@ -240,8 +255,8 @@ export default async function Home() {
 
         <div className="directory-grid fashion-grid">
           {fashionDirectories.map((directory, index) => (
-            <Link className={`directory-card fashion-card ${directory.className}`} href={directory.href} key={directory.href}>
-              <img src={directory.image} alt="" style={{ objectPosition: directory.position }} />
+            <Link className={`directory-card fashion-card ${directory.className}`} href={directory.href} key={directory.title}>
+              <img src={directory.image} alt="" loading="lazy" style={{ objectPosition: directory.position }} />
               <div className="directory-shade" />
               <span className="fashion-number">{String(index + 1).padStart(2, "0")}</span>
               <div className="directory-content"><p>{directory.eyebrow}</p><h3>{directory.title}</h3><span>{directory.description}</span></div>
@@ -253,7 +268,7 @@ export default async function Home() {
 
       <section className="directory-section departments-section" id="departamentos">
         <div className="section-heading">
-          <div><p className="eyebrow eyebrow--dark">OUTROS DEPARTAMENTOS</p><h2>Muito além<br />da moda.</h2></div>
+          <div><p className="eyebrow eyebrow--dark">03 / SEU UNIVERSO</p><h2>Muito além<br />da moda.</h2></div>
           <p>Acessórios ficam em um espaço próprio, separados das roupas. Explore também academia, tecnologia, casa, beleza, ferramentas, esporte e lazer.</p>
         </div>
         <div className="directory-grid departments-grid">
@@ -263,7 +278,7 @@ export default async function Home() {
               href={directory.href}
               key={directory.href}
             >
-              <img src={directory.image} alt="" />
+              <img src={directory.image} alt="" loading="lazy" />
               <div className="directory-shade" />
               <div className="directory-content">
                 <p>{directory.eyebrow}</p>
