@@ -172,7 +172,10 @@ export default async function Home() {
   ]);
   const featuredIds = parseFeaturedIds(featuredIdsValue);
   const featuredProducts = selectFeaturedProducts(products, featuredIds);
-  const heroProducts = featuredProducts.filter((product) => product.imageKey || product.imageUrl).slice(0, 3);
+  // Keep the catalog highlights intact; replace only the shorts in the hero showcase.
+  const heroIds = featuredIds.map((id) => id === 827 ? 1078 : id);
+  const heroProducts = selectFeaturedProducts(products, [...new Set(heroIds)])
+    .filter((product) => product.imageKey || product.imageUrl).slice(0, 3);
   const highlightGroups = {
     featured: featuredProducts,
     "10": selectPriceHighlights(products, 10),
