@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AccountNav } from "@/components/account-nav";
 import { HomeHighlights } from "@/components/home-highlights";
+import { HomeCuration } from "@/components/home-curation";
 import { SiteFooter } from "@/components/site-footer";
 import { getSetting, listProducts, type CatalogProduct } from "@/lib/catalog";
 import { parseCatalogPrice, productPriceDisplay } from "@/lib/price";
@@ -24,6 +25,83 @@ function selectFeaturedProducts(products: CatalogProduct[], featuredIds: number[
   return featuredIds
     .map((id) => productsById.get(id))
     .filter((product): product is CatalogProduct => Boolean(product));
+}
+
+const HOME_CURATION_CATEGORIES = new Set([
+  "cozinha", "casa_utilidades", "cama_banho", "limpeza", "organizacao",
+  "decoracao", "moveis", "ferramentas", "automotivo", "beleza_cabelo",
+  "beleza_cuidados", "higiene", "skincare", "sapatos", "camisas", "calcas",
+  "blusas", "pijamas", "casacos", "conjuntos", "relogios", "oculos", "audio",
+  "celulares", "mobilidade", "esporte_lazer", "pesca", "bolsas", "acessorios",
+]);
+
+function productSalesScore(value: string | null | undefined) {
+  if (!value) return 0;
+  const normalized = value.toLowerCase().replace(/,/g, ".").replace(/\s/g, "");
+  const match = normalized.match(/(\d+(?:\.\d+)?)(mil|k)?\+?/);
+  if (!match) return 0;
+  return Math.round(Number(match[1]) * (match[2] ? 1000 : 1));
+}
+
+function homeCurationCandidates(products: CatalogProduct[]) {
+  const seenLinks = new Set<string>();
+  return products.filter((product) => {
+    const adultClothing = product.department !== "moda" || product.ageGroup === "adulto";
+    const eligible = product.ageGroup !== "infantil" &&
+      adultClothing &&
+      HOME_CURATION_CATEGORIES.has(product.category) &&
+      /^https:\/\/s\.shopee\.com\.br\//.test(product.productUrl) &&
+      Boolean(product.imageKey || product.imageUrl) &&
+      Number.isInteger(product.priceCents) &&
+      productSalesScore(product.sales) > 0 &&
+      !seenLinks.has(product.productUrl);
+    if (eligible) seenLinks.add(product.productUrl);
+    return eligible;
+  }).sort((left, right) =>
+    productSalesScore(right.sales) - productSalesScore(left.sales) || right.id - left.id
+  );
+}
+
+function selectTopTen(products: CatalogProduct[]) {
+  const candidates = homeCurationCandidates(products);
+  const selected: CatalogProduct[] = [];
+  const categories = new Set<string>();
+  const departments = new Map<string, number>();
+  for (const product of candidates) {
+    const departmentCount = departments.get(product.department) ?? 0;
+    if (categories.has(product.category) || departmentCount >= 2) continue;
+    selected.push(product);
+    categories.add(product.category);
+    departments.set(product.department, departmentCount + 1);
+    if (selected.length === 10) return selected;
+  }
+  for (const product of candidates) {
+    if (selected.some((item) => item.id === product.id)) continue;
+    selected.push(product);
+    if (selected.length === 10) break;
+  }
+  return selected;
+}
+
+function selectWeeklyHighlights(products: CatalogProduct[], topTen: CatalogProduct[]) {
+  const candidates = homeCurationCandidates(products).filter(
+    (product) => !topTen.some((item) => item.id === product.id),
+  );
+  if (candidates.length === 0) return [];
+  const week = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
+  const start = (week * 13) % candidates.length;
+  const selected: CatalogProduct[] = [];
+  const categories = new Set<string>();
+  const departments = new Map<string, number>();
+  for (let offset = 0; offset < candidates.length && selected.length < 8; offset += 1) {
+    const product = candidates[(start + offset) % candidates.length];
+    const departmentCount = departments.get(product.department) ?? 0;
+    if (categories.has(product.category) || departmentCount >= 3) continue;
+    selected.push(product);
+    categories.add(product.category);
+    departments.set(product.department, departmentCount + 1);
+  }
+  return selected;
 }
 
 function selectPriceHighlights(products: CatalogProduct[], maximum: number) {
@@ -172,6 +250,8 @@ export default async function Home() {
   ]);
   const featuredIds = parseFeaturedIds(featuredIdsValue);
   const featuredProducts = selectFeaturedProducts(products, featuredIds);
+  const topTen = selectTopTen(products);
+  const weeklyHighlights = selectWeeklyHighlights(products, topTen);
   // Keep the catalog highlights intact; replace only the shorts in the hero showcase.
   const heroSelection = featuredProducts.filter((product) => product.imageKey || product.imageUrl).slice(0, 3);
   const heroElectronic = products.find((product) =>
@@ -231,13 +311,16 @@ export default async function Home() {
         </div>}
       </section>
 
+      <HomeCuration kind="top10" products={topTen} />
+      <HomeCuration kind="weekly" products={weeklyHighlights} />
+
       <section className="trust-strip" aria-label="Como comprar">
         <div><b>01</b><span><strong>Escolha seu achado</strong>Use categorias ou pesquisa.</span></div>
         <div><b>02</b><span><strong>Confira a oferta atual</strong>Preço e estoque aparecem na loja.</span></div>
         <div><b>03</b><span><strong>Compre na plataforma</strong>Pagamento e entrega são feitos pela parceira.</span></div>
       </section>
 
-      <nav className="collection-shortcuts" aria-label="Coleções rápidas"><Link href="/colecoes/promocoes"><span>01</span><b>Promoções</b><i>↗</i></Link><Link href="/colecoes/novidades"><span>02</span><b>Novidades</b><i>↗</i></Link><Link href="/colecoes/vendidos"><span>03</span><b>Mais vendidos</b><i>↗</i></Link><Link href="/colecoes/avaliados"><span>04</span><b>Melhores avaliações</b><i>↗</i></Link><Link href="/categorias"><span>05</span><b>Todas as categorias</b><i>↗</i></Link></nav>
+      <nav className="collection-shortcuts" aria-label="Coleções rápidas"><Link href="/colecoes/promocoes"><span>01</span><b>Promoções</b><i>↗</i></Link><Link href="/colecoes/novidades"><span>02</span><b>Novidades</b><i>↗</i></Link><Link href="#top-10"><span>03</span><b>Top 10</b><i>↗</i></Link><Link href="/colecoes/avaliados"><span>04</span><b>Melhores avaliações</b><i>↗</i></Link><Link href="/categorias"><span>05</span><b>Todas as categorias</b><i>↗</i></Link></nav>
 
       <section className="featured-section" id="destaques">
         <div className="section-heading featured-heading">

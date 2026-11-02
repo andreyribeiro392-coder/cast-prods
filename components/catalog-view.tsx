@@ -267,7 +267,7 @@ export function CatalogView({
         <div><span>MODALIDADES</span><strong>Escolha uma categoria</strong></div>
         <small>{filtered.length} {filtered.length === 1 ? "produto encontrado" : "produtos encontrados"}</small>
       </div>
-      <button aria-expanded={mobileFiltersOpen} className="mobile-filter-toggle" onClick={() => setMobileFiltersOpen((value) => !value)} type="button"><span>Preço e ordenação</span><b>{mobileFiltersOpen ? "Fechar ×" : "Abrir filtros +"}</b></button>
+      <button aria-expanded={mobileFiltersOpen} className="mobile-filter-toggle" onClick={() => setMobileFiltersOpen((value) => !value)} type="button"><span>Preço e ordenação</span><b>{mobileFiltersOpen ? "← Voltar" : "Abrir filtros +"}</b></button>
       <div className={mobileFiltersOpen ? "catalog-controls catalog-controls--mobile-open" : "catalog-controls"} aria-label="Preço e ordem dos produtos">
         <div className="price-control">
           <span>FAIXA DE PREÇO</span>

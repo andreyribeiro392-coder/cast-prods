@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AdminDashboard } from "@/components/admin-dashboard";
-import { BackButton } from "@/components/back-button";
 import { requireChatGPTUser, chatGPTSignOutPath } from "@/app/chatgpt-auth";
 import { isAdminEmail } from "@/lib/admin";
 
@@ -17,7 +16,6 @@ export default async function AdminPage() {
 
   return (
     <main className="admin-page">
-      <BackButton />
       <header className="site-header admin-header">
         <Link className="brand" href="/">CAST<span>.PRODS</span></Link>
         <div className="admin-account"><span>{user.email}</span><a href={chatGPTSignOutPath("/")}>Sair</a></div>
