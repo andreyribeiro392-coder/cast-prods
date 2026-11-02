@@ -29,7 +29,7 @@ function selectFeaturedProducts(products: CatalogProduct[], featuredIds: number[
 
 const EVERYDAY_HERO_CATEGORIES = new Set([
   "casa_utilidades", "cozinha", "cama_banho", "limpeza", "organizacao",
-  "higiene", "beleza_cuidados", "beleza_cabelo",
+  "higiene",
 ]);
 
 const HOME_CURATION_CATEGORIES = new Set([
