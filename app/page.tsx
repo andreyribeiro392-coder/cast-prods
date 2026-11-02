@@ -27,6 +27,11 @@ function selectFeaturedProducts(products: CatalogProduct[], featuredIds: number[
     .filter((product): product is CatalogProduct => Boolean(product));
 }
 
+const EVERYDAY_HERO_CATEGORIES = new Set([
+  "casa_utilidades", "cozinha", "cama_banho", "limpeza", "organizacao",
+  "higiene", "beleza_cuidados", "beleza_cabelo",
+]);
+
 const HOME_CURATION_CATEGORIES = new Set([
   "cozinha", "casa_utilidades", "cama_banho", "limpeza", "organizacao",
   "decoracao", "moveis", "ferramentas", "automotivo", "beleza_cabelo",
@@ -41,6 +46,46 @@ function productSalesScore(value: string | null | undefined) {
   const match = normalized.match(/(\d+(?:\.\d+)?)(mil|k)?\+?/);
   if (!match) return 0;
   return Math.round(Number(match[1]) * (match[2] ? 1000 : 1));
+}
+
+function selectEverydayHeroProducts(products: CatalogProduct[], fallback: CatalogProduct[]) {
+  const eligible = products
+    .filter((product) =>
+      product.ageGroup !== "infantil" &&
+      EVERYDAY_HERO_CATEGORIES.has(product.category) &&
+      /^https:\/\/s\.shopee\.com\.br\//.test(product.productUrl) &&
+      Boolean(product.imageKey || product.imageUrl) &&
+      Number.isInteger(product.priceCents) &&
+      productSalesScore(product.sales) > 0
+    )
+    .sort((left, right) =>
+      productSalesScore(right.sales) - productSalesScore(left.sales) || right.id - left.id
+    );
+
+  const selected: CatalogProduct[] = [];
+  const categories = new Set<string>();
+  const addProduct = (product: CatalogProduct, preferNewCategory: boolean) => {
+    if (selected.some((item) => item.id === product.id)) return;
+    if (preferNewCategory && categories.has(product.category)) return;
+    selected.push(product);
+    categories.add(product.category);
+  };
+
+  for (const product of eligible) {
+    addProduct(product, true);
+    if (selected.length === 3) return selected;
+  }
+  for (const product of eligible) {
+    addProduct(product, false);
+    if (selected.length === 3) return selected;
+  }
+  for (const product of fallback) {
+    if (/^https:\/\/s\.shopee\.com\.br\//.test(product.productUrl) && (product.imageKey || product.imageUrl)) {
+      addProduct(product, false);
+    }
+    if (selected.length === 3) break;
+  }
+  return selected;
 }
 
 function homeCurationCandidates(products: CatalogProduct[]) {
@@ -252,16 +297,7 @@ export default async function Home() {
   const featuredProducts = selectFeaturedProducts(products, featuredIds);
   const topTen = selectTopTen(products);
   const weeklyHighlights = selectWeeklyHighlights(products, topTen);
-  // Keep the catalog highlights intact; replace only the shorts in the hero showcase.
-  const heroSelection = featuredProducts.filter((product) => product.imageKey || product.imageUrl).slice(0, 3);
-  const heroElectronic = products.find((product) =>
-    product.category === "audio" && /^fones?\b/i.test(product.title) && /bluetooth/i.test(product.title) &&
-    (product.imageKey || product.imageUrl) &&
-    !heroSelection.some((featured) => featured.id === product.id)
-  );
-  const heroProducts = heroSelection.map((product) =>
-    product.category === "shorts" && heroElectronic ? heroElectronic : product
-  );
+  const heroProducts = selectEverydayHeroProducts(products, featuredProducts);
   const highlightGroups = {
     featured: featuredProducts,
     "10": selectPriceHighlights(products, 10),
@@ -289,14 +325,19 @@ export default async function Home() {
 
       <section className="hero store-hero">
         <div className="store-hero-copy">
-          <p className="eyebrow">ESCOLHA MENOS ÓBVIO.</p>
-          <h1>Seu próximo<br /><span>bom achado.</span></h1>
-          <p>Do seu estilo ao seu espaço. Explore a seleção, compare os detalhes e encontre o que combina com você.</p>
-          <div className="hero-actions"><a className="primary-button" href="#destaques">Explorar achados <span aria-hidden="true">↗</span></a><a className="secondary-hero-button" href="#departamentos">Ver departamentos</a></div>
-          <div className="store-hero-stats"><div><strong>{products.length.toLocaleString("pt-BR")}</strong><span>produtos para descobrir</span></div><div><strong>Seu ritmo.</strong><span>Salve. Compare. Escolha.</span></div></div>
+          <p className="eyebrow">ACHADOS QUE ENTRAM NA ROTINA</p>
+          <h1>Seu dia a dia,<br /><span>mais prático.</span></h1>
+          <p>Ideias úteis para casa, cuidados e rotina — escolhidas entre ofertas reais do nosso catálogo.</p>
+          <div className="hero-actions"><a className="primary-button" href="#top-10">Descobrir o Top 10 <span aria-hidden="true">↗</span></a><a className="secondary-hero-button" href="/categorias">Explorar categorias</a></div>
+          <nav className="hero-quick-links" aria-label="Atalhos de categorias">
+            <Link href="/casa"><span aria-hidden="true">⌂</span> Casa</Link>
+            <Link href="/beleza"><span aria-hidden="true">✳</span> Cuidados</Link>
+            <Link href="/categorias"><span aria-hidden="true">↗</span> Ver tudo</Link>
+          </nav>
+          <div className="store-hero-stats"><div><strong>{products.length.toLocaleString("pt-BR")}</strong><span>achados no catálogo</span></div><div><strong>3 novas ideias</strong><span>deslize para escolher</span></div></div>
         </div>
         {heroProducts.length > 0 && <div className="editorial-shelf" aria-label="Uma prévia da seleção">
-          <div className="shelf-heading"><span>NA NOSSA SELEÇÃO</span><span>01 — {String(heroProducts.length).padStart(2, "0")}</span></div>
+          <div className="shelf-heading"><span>ÚTEIS PARA TODO DIA</span><span>DESLIZE <span aria-hidden="true">→</span></span></div>
           <div className="shelf-products">
             {heroProducts.map((product, index) => {
               const title = getProductDisplayTitle(product.title, 60);
@@ -307,7 +348,7 @@ export default async function Home() {
               </Link>;
             })}
           </div>
-          <p className="shelf-footnote">Um novo olhar para as suas próximas escolhas.</p>
+          <p className="shelf-footnote">Três ideias para facilitar sua rotina <span aria-hidden="true">•</span> Toque para ver a oferta</p>
         </div>}
       </section>
 
