@@ -102,7 +102,7 @@ export function ProductSearch() {
         <div className="search-panel">
           <div className="search-panel-top">
             <div><small>PESQUISA CAST.PRODS</small><strong>Encontre seu próximo achado.</strong></div>
-            <button aria-label="Fechar pesquisa" onClick={() => setOpen(false)} type="button">×</button>
+            <button aria-label="Voltar e fechar pesquisa" className="modal-back-button" onClick={() => setOpen(false)} type="button"><span aria-hidden="true">←</span><b>Voltar</b></button>
           </div>
           <label className="search-input-wrap">
             <span aria-hidden="true">⌕</span>
